@@ -38,7 +38,7 @@ a{color:inherit}
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 24px rgb(22 33 62 / .08)}
 .card+.card,.card+section,section+section{margin-top:14px}
 .field{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center}
-.field+.field{margin-top:8px}
+.field+.field,#viaList .field,#viaList+.field{margin-top:8px}
 .dot{width:18px;height:18px;border-radius:50%;border:4px solid var(--red);background:var(--card);justify-self:center}
 .dot.g{border-color:var(--ink);background:var(--ink)}
 .rail{position:relative}
@@ -53,6 +53,24 @@ a{color:inherit}
 .sug{position:absolute;left:0;right:0;top:54px;z-index:20;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px rgb(0 0 0 / .18);list-style:none;margin:0;padding:4px;max-height:260px;overflow:auto}
 .sug li{padding:10px 12px;border-radius:8px;cursor:pointer}
 .sug li:hover,.sug li.on{background:var(--chip)}
+.dot.v{width:14px;height:14px;border-radius:3px;border:3px solid var(--teal);transform:rotate(45deg)}
+.ibtn.x{color:var(--sub)}
+.st .via{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--teal);border-radius:999px;padding:0 7px;margin-left:6px}
+.rbox{border:1.5px solid var(--line);border-radius:16px;background:var(--soft)}
+.rrow{display:grid;grid-template-columns:52px minmax(0,1fr) 40px;align-items:center;gap:6px;padding:4px 8px 4px 14px;min-height:62px;border-radius:14px}
+.rrow:focus-within{background:var(--card)}
+.rlab{font-family:"M PLUS 1p",sans-serif;font-weight:800;font-size:15px;white-space:nowrap}
+.rlab.s{color:var(--red)}.rlab.v{color:var(--teal)}.rlab.g{color:var(--ink)}
+.rrow .inp input{border:0;background:transparent;height:48px;padding:0;font-size:17px;box-shadow:none!important}
+.rrow .inp input::placeholder{color:var(--sub);opacity:.7}
+.rbtn{width:40px;height:40px;border-radius:50%;border:0;background:transparent;color:var(--sub);display:grid;place-items:center}
+.rbtn svg{width:22px;height:22px}
+.rbtn.x{border:1.5px solid var(--sub)}.rbtn.x svg{width:16px;height:16px}
+.rsep{position:relative;border-top:1px solid var(--line);margin:0 12px}
+.rsep .ins{position:absolute;right:52px;top:-17px;height:34px;padding:0 14px;border-radius:999px;border:0;background:var(--teal);color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:3px;z-index:2}
+.rsep .ins svg{width:14px;height:14px}
+.rsep .swap{position:absolute;left:4px;top:-19px;width:38px;height:38px;border-radius:50%;border:3px solid var(--soft);background:var(--ink);color:var(--card);display:grid;place-items:center;z-index:2}
+.rsep .swap svg{width:20px;height:20px}
 .hint{font-size:13px;color:var(--sub);margin:6px 0 0 38px}
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--chip);padding:5px;border-radius:14px;margin-top:16px}
 .tabs button{border:0;background:transparent;border-radius:10px;padding:10px 6px;font-weight:700;min-height:48px;line-height:1.3}
@@ -109,7 +127,9 @@ details.opt summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--su
 .note{font-size:13px;color:#fff;opacity:.9;margin:8px 0 0}
 .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .acts button,.acts a{border:0;border-radius:12px;padding:0 16px;min-height:44px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
-.b-white{background:#fff;color:#16213e}.b-x{background:#000;color:#fff;border:1px solid rgb(255 255 255 / .25)!important}.b-teal{background:#16213e;color:#fff}
+.b-white{background:#fff;color:#16213e}.b-x{background:#000;color:#fff;border:1px solid rgb(255 255 255 / .35)!important}
+.acts svg{width:16px;height:16px}
+.acts #copyBtn,.acts #xBtn{flex:1 1 140px;justify-content:center;font-size:15px;min-height:48px}.b-teal{background:#16213e;color:#fff}
 .alts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .alts button{border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:6px 12px;font-weight:700;min-height:40px}
 .alts button.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
@@ -270,8 +290,8 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
       <p class="note" id="rNote" hidden></p>
       <div class="acts">
         <button type="button" class="b-play" id="playBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>もう一度再生</button>
-        <button type="button" class="b-white" id="copyBtn">結果をコピー</button>
-        <a class="b-x" id="xBtn" href="#" target="_blank" rel="noopener noreferrer">Xでシェア</a>
+        <button type="button" class="b-white" id="copyBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>結果をシェア</button>
+        <a class="b-x" id="xBtn" href="#" target="_blank" rel="noopener noreferrer">Xでポスト</a>
         <button type="button" class="b-teal" id="againBtn">別のルートを探す</button>
       </div>
     </div>
@@ -281,20 +301,17 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
   </section>
 
   <form class="card" id="form" autocomplete="off">
-    <div class="rail">
-      <div class="field">
-        <span class="dot" aria-hidden="true"></span>
-        <div class="inp"><label for="startIn">出発</label>
-          <input id="startIn" placeholder="空欄でランダムな言葉" enterkeyhint="next">
-          <ul class="sug" id="startSug" role="listbox" hidden></ul></div>
-        <button type="button" class="ibtn" id="startRnd" aria-label="ランダムな言葉を入れる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.3" fill="currentColor"/><circle cx="16" cy="16" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg></button>
+    <div class="rbox">
+      <div class="rrow">
+        <label class="rlab s" for="startIn">出発</label>
+        <div class="inp"><input id="startIn" placeholder="空欄でランダム" enterkeyhint="next"><ul class="sug" id="startSug" role="listbox" hidden></ul></div>
+        <button type="button" class="rbtn" id="startRnd" aria-label="ランダムな言葉を入れる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.3" fill="currentColor"/><circle cx="16" cy="16" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg></button>
       </div>
-      <div class="field">
-        <span class="dot g" aria-hidden="true"></span>
-        <div class="inp"><label for="goalIn">到着</label>
-          <input id="goalIn" enterkeyhint="search">
-          <ul class="sug" id="goalSug" role="listbox" hidden></ul></div>
-        <button type="button" class="ibtn" id="swapBtn" aria-label="出発と到着を入れ替える"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></svg></button>
+      <div id="viaList"></div>
+      <div class="rrow">
+        <label class="rlab g" for="goalIn">到着</label>
+        <div class="inp"><input id="goalIn" placeholder="たどり着きたい言葉" enterkeyhint="search"><ul class="sug" id="goalSug" role="listbox" hidden></ul></div>
+        <span></span>
       </div>
     </div>
 
@@ -335,7 +352,7 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
   <div class="cbar">
     <div class="cnow"><span id="cNow">0</span><small>打</small></div>
     <div class="cbest">最短 <b id="cBest">…</b>打</div>
-    <div class="cgoal">目標：<b id="cGoal"></b></div>
+    <div class="cgoal" id="cGoalRow"></div>
     <button type="button" id="cBack" style="margin-left:auto">戻る</button>
     <button type="button" id="cGive">やめる</button>
   </div>
@@ -796,6 +813,34 @@ async function shortestRoutes(start, goal, opt, signal) {
   return null;
 }
 
+// ---------- 経由地つきルート（区間ごとに最短をつなぐ） ----------
+async function routeVia(points, opt, signal) {
+  await fetchAliases(points.slice(1), signal);
+  const legs = [];
+  let acc = [points[0]];
+  for (let k = 0; k < points.length - 1; k++) {
+    const a = acc[acc.length - 1], b = points[k + 1];
+    if (a === b || aliasesOf(b).has(a)) { legs.push([[a]]); continue; }
+    // それまで通った記事と、この先の経由地・到着は途中で通らない
+    const forbidden = new Set([...acc.slice(0, -1), ...points.slice(k + 2).flatMap((p) => [...aliasesOf(p)])]);
+    const r = await shortestRoutes(a, b, { ...opt, forbidden }, signal);
+    if (!r) return null;
+    legs.push(r.routes);
+    acc = acc.concat(r.routes[0].slice(1));
+  }
+  const join = (ls) => ls.reduce((o, l, i) => (i === 0 ? [...l] : o.concat(l.slice(1))), []);
+  const base = legs.map((l) => l[0]);
+  const routes = [join(base)];
+  for (let k = 0; k < legs.length && routes.length < 3; k++) {
+    for (let j = 1; j < legs[k].length && routes.length < 3; j++) {
+      const ls = [...base]; ls[k] = legs[k][j];
+      const r = join(ls);
+      if (new Set(r).size === r.length) routes.push(r);
+    }
+  }
+  return { routes, hops: routes[0].length - 1 };
+}
+
 // ---------- 寄り道ルート ----------
 async function detourRoute(start, goal, opt, signal) {
   const goalAl = aliasesOf(goal);
@@ -838,7 +883,7 @@ async function detourRoute(start, goal, opt, signal) {
   return null;
 }
 
-if (typeof module !== 'undefined') module.exports = { E, api, extractBodyLinks, shortestRoutes, detourRoute, resolveTitle, fetchAliases, fetchClean, canonOf, randomTitle, isDateOrList };
+if (typeof module !== 'undefined') module.exports = { E, routeVia, api, extractBodyLinks, shortestRoutes, detourRoute, resolveTitle, fetchAliases, fetchClean, canonOf, randomTitle, isDateOrList };
 
 
 const $ = (id) => document.getElementById(id);
@@ -868,7 +913,6 @@ function renderMode() {
 $('tabShort').onclick = () => { st.mode = 'shortest'; renderMode(); };
 $('tabChal').onclick = () => { st.mode = 'challenge'; renderMode(); };
 $('dateSw').onclick = () => { st.avoidDates = !st.avoidDates; $('dateSw').setAttribute('aria-checked', String(st.avoidDates)); };
-$('swapBtn').onclick = () => { const a = $('startIn').value; $('startIn').value = $('goalIn').value; $('goalIn').value = a; };
 $('startRnd').onclick = async () => {
   try { $('startRnd').disabled = true; const t = await randomTitle(); if (t) $('startIn').value = t; }
   catch { toast('ランダムな言葉を取得できませんでした'); }
@@ -910,6 +954,55 @@ function attachSuggest(input, list) {
 }
 attachSuggest($('startIn'), $('startSug'));
 attachSuggest($('goalIn'), $('goalSug'));
+
+// ----- 経由地の入力欄（仕切り線の「＋経由」で好きな位置に追加） -----
+const MAX_VIA = 3;
+const SWAP_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M12 3l-4 4M12 3l4 4M12 21l-4-4M12 21l4-4"/></svg>';
+const PLUS_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+const X_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+function viaInputs() { return [...document.querySelectorAll('#viaList input')]; }
+function viaValues() { return viaInputs().map((i) => i.value.trim()).filter(Boolean); }
+function renderVias(list, focusAt = -1) {
+  const full = list.length >= MAX_VIA;
+  const sep = (at) => `<div class="rsep">${at === 0 ? `<button type="button" class="swap" id="swapBtn" aria-label="出発と到着を入れ替える">${SWAP_SVG}</button>` : ''}${full ? '' : `<button type="button" class="ins" data-at="${at}">${PLUS_SVG}経由</button>`}</div>`;
+  let html = sep(0);
+  list.forEach((v, i) => {
+    html += `<div class="rrow"><label class="rlab v" for="via${i}">${list.length > 1 ? '経由' + (i + 1) : '経由'}</label>
+      <div class="inp"><input id="via${i}" placeholder="経由する言葉" enterkeyhint="next"><ul class="sug" role="listbox" hidden></ul></div>
+      <button type="button" class="rbtn x" data-del="${i}" aria-label="この経由地を消す">${X_SVG}</button></div>` + sep(i + 1);
+  });
+  $('viaList').innerHTML = html;
+  viaInputs().forEach((input, i) => {
+    input.value = list[i];
+    attachSuggest(input, input.parentElement.querySelector('.sug'));
+  });
+  if (focusAt >= 0) $('via' + focusAt)?.focus();
+}
+const currentVias = () => viaInputs().map((i) => i.value);
+function setVias(list) { renderVias((list || []).slice(0, MAX_VIA)); }
+function addVia(value = '') { const l = currentVias(); if (l.length < MAX_VIA) { l.push(value); renderVias(l, value ? -1 : l.length - 1); } }
+$('viaList').addEventListener('click', (e) => {
+  const ins = e.target.closest('.ins');
+  if (ins) { const l = currentVias(); const at = +ins.dataset.at; l.splice(at, 0, ''); renderVias(l, at); return; }
+  const del = e.target.closest('[data-del]');
+  if (del) { const l = currentVias(); l.splice(+del.dataset.del, 1); renderVias(l); return; }
+  if (e.target.closest('#swapBtn')) {
+    const a = $('startIn').value; $('startIn').value = $('goalIn').value; $('goalIn').value = a;
+    renderVias(currentVias().reverse());
+  }
+});
+renderVias([]);
+async function resolveVias(signal) {
+  const out = [];
+  for (const q of viaValues()) {
+    const r = await resolveTitle(q, signal);
+    if (!r) throw Object.assign(new Error(`経由地「${q}」の記事が見つかりませんでした`), { user: true });
+    out.push(r.title);
+  }
+  viaInputs().filter((i) => i.value.trim()).forEach((i, k) => { i.value = out[k]; });
+  return out;
+}
+const routeLabel = (start, vias, goal) => [start, ...(vias || []), goal].join(' ➞ ');
 
 // ----- 進捗 -----
 function startProg() {
@@ -964,17 +1057,18 @@ async function search() {
     $('goalIn').value = goal;
     if (g.note) notes.push(g.note);
     await fetchAliases([goal], signal);
+    const vias = await resolveVias(signal);
 
-
-    if (aliasesOf(goal).has(start) || start === goal) {
-      return await show({ mode, start, goal, routes: [[goal]], detourEnd: -1, notes });
+    if (!vias.length && (aliasesOf(goal).has(start) || start === goal)) {
+      return await show({ mode, start, goal, vias, routes: [[goal]], detourEnd: -1, notes });
     }
 
     let avoidDates = st.avoidDates;
+    let vias2 = vias;
     for (let attempt = 0; attempt < 4; attempt++) {
       const opt = { avoidDates, blocked, detourSteps: steps };
-      const r = await shortestRoutes(start, goal, opt, signal);
-      if (r) return await show({ mode, start, goal, routes: r.routes, detourEnd: -1, notes });
+      const r = await routeVia([start, ...vias, goal], opt, signal);
+      if (r) return await show({ mode, start, goal, vias, routes: r.routes, detourEnd: -1, notes });
       // 見つからなかったときの立て直し
       if (avoidDates) { avoidDates = false; notes.push('年・日付・一覧の記事を外すと見つからなかったため、それらも使って探しました。'); continue; }
       if (isRandom) {
@@ -988,9 +1082,10 @@ async function search() {
       break;
     }
     msg('warn', 'ルートが見つかりませんでした',
-      `「${start}」から「${goal}」へ、本文リンクだけで${MAX_HOPS}クリック以内の道を見つけられませんでした。到着の記事が他の記事からほとんどリンクされていない可能性があります。出発を変えるか、「中継に使わない記事」を減らしてください。`);
+      `「${routeLabel(start, vias, goal)}」の順に、本文リンクだけで${MAX_HOPS}クリック以内の道を見つけられませんでした。到着の記事が他の記事からほとんどリンクされていない可能性があります。出発を変えるか、「中継に使わない記事」を減らしてください。`);
   } catch (err) {
     if (err.name === 'AbortError') msg('info', '検索をやめました', '言葉を変えて、もう一度探せます。');
+    else if (err.user) msg('warn', '記事が見つかりません', err.message);
     else if (err.rate) msg('warn', 'Wikipediaが混み合っています', '短い時間に問い合わせが多すぎたため、一時的に制限されました。20秒ほど待ってからもう一度お試しください。');
     else { console.error(err); msg('err', 'エラーが起きました', `Wikipediaとの通信で問題が起きました（${err.message}）。少し待ってから試してください。`); }
   } finally {
@@ -1035,7 +1130,7 @@ function render() {
   const hops = route.length - 1;
   const det = r.mode === 'detour';
   $('rBig').innerHTML = `${hops}<small>クリック</small>`;
-  $('rTitle').textContent = hops === 0 ? `「${r.start}」は到着の記事そのものです` : `「${r.start}」→「${r.goal}」`;
+  $('rTitle').textContent = hops === 0 ? `「${r.start}」は到着の記事そのものです` : routeLabel(r.start, r.vias, r.goal);
   const tags = [det ? `寄り道ルート（寄り道${r.detourEnd}回）` : '最短ルート', '本文リンクのみ'];
   $('rTags').innerHTML = tags.map((t) => `<span>${esc(t)}</span>`).join('');
   $('rPath').textContent = route.join(' → ');
@@ -1053,11 +1148,12 @@ function render() {
     const color = segDetour ? 'var(--teal)' : 'var(--red)';
     let lab = i === 0 ? '出発' : i === route.length - 1 ? '到着' : `${i}クリック目`;
     if (det && i > 0 && i <= r.detourEnd) lab += '・寄り道';
+    const isVia = i > 0 && i < route.length - 1 && (r.vias || []).includes(t);
     const cls = i === 0 ? 'beg' : i === route.length - 1 ? 'end' : '';
     const img = inf.thumb ? `<img src="${esc(inf.thumb)}" alt="" loading="lazy" onerror="this.remove()">` : '';
-    return `<li class="st ${cls}" style="--seg:${color}"><span class="pin"></span><a class="box" href="${esc(wikiUrl(t))}" target="_blank" rel="noopener noreferrer">${img}<div><span class="lab">${esc(lab)}</span><h3>${esc(t)}</h3>${inf.extract ? `<p>${esc(inf.extract)}</p>` : ''}</div></a></li>`;
+    return `<li class="st ${cls}" style="--seg:${color}"><span class="pin"></span><a class="box" href="${esc(wikiUrl(t))}" target="_blank" rel="noopener noreferrer">${img}<div><span class="lab">${esc(lab)}</span>${isVia ? '<span class="via">経由地</span>' : ''}<h3>${esc(t)}</h3>${inf.extract ? `<p>${esc(inf.extract)}</p>` : ''}</div></a></li>`;
   }).join('');
-  $('xBtn').href = 'https://x.com/intent/tweet?' + new URLSearchParams({ text: shareText(false), url: pageUrl() }).toString();
+  $('xBtn').href = 'https://x.com/intent/tweet?' + new URLSearchParams({ text: shareText() }).toString();
   $('res').hidden = false;
   window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }
@@ -1068,41 +1164,47 @@ function pageUrl() {
   if (location.protocol.startsWith('http') && !/localhost|127\.0\.0\.1/.test(location.hostname)) return location.origin + location.pathname;
   return m;
 }
-function shareText(withUrl) {
+function shareUrlFor(start, vias, goal) {
+  const base = pageUrl();
+  if (!base) return '';
+  const q = new URLSearchParams({ s: start, g: goal });
+  for (const v of vias || []) q.append('v', v);
+  return base + '?' + q.toString();
+}
+function shareText(withUrl = true) {
   const r = st.result; if (!r) return '';
   const route = r.routes[st.sel] || r.routes[0];
-  const det = r.mode === 'detour';
-  const lines = [`「${r.start}」から「${r.goal}」まで${route.length - 1}クリック！${det ? '（寄り道ルート）' : '（最短ルート）'}`, route.join(' → '), '', '#ウィキ乗り換え案内'];
-  if (withUrl) lines.push(pageUrl());
+  const lines = [routeLabel(r.start, r.vias, r.goal), `最短${route.length - 1}クリックで到着🚃`, route.join(' → '), 'あなたは何打で行ける？', '#Wikipediaゴルフ'];
+  const u = shareUrlFor(r.start, r.vias, r.goal);
+  if (withUrl && u) lines.push(u);
   return lines.join('\n');
 }
-$('copyBtn').onclick = async () => {
-  const text = shareText(true);
-  try { await navigator.clipboard.writeText(text); toast('結果をコピーしました'); }
-  catch {
-    const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.top = '-999px';
-    document.body.appendChild(ta); ta.select();
-    let ok = false; try { ok = document.execCommand('copy'); } catch { /* 失敗 */ }
-    ta.remove(); toast(ok ? '結果をコピーしました' : 'コピーできませんでした');
+// スマホの共有シート（LINE・X・インスタ等）。使えない環境ではコピー
+async function nativeShare(text) {
+  if (navigator.share) {
+    try { await navigator.share({ text }); return; } catch (e) { if (e.name === 'AbortError') return; }
   }
-};
+  copyText(text);
+}
+$('copyBtn').onclick = () => nativeShare(shareText());
 
 // ----- 履歴 -----
 function loadHist() { try { const v = JSON.parse(localStorage.getItem(HKEY) || '[]'); st.hist = Array.isArray(v) ? v.slice(0, 12) : []; } catch { st.hist = []; } renderHist(); }
 function saveHist(r) {
   const route = r.routes[0];
-  st.hist = [{ mode: r.mode, start: r.start, goal: r.goal, route, at: Date.now() }, ...st.hist.filter((h) => !(h.start === r.start && h.goal === r.goal && h.mode === r.mode))].slice(0, 12);
+  const vk = (r.vias || []).join('|');
+  st.hist = [{ mode: r.mode, start: r.start, goal: r.goal, vias: r.vias || [], route, at: Date.now() }, ...st.hist.filter((h) => !(h.start === r.start && h.goal === r.goal && h.mode === r.mode && (h.vias || []).join('|') === vk))].slice(0, 12);
   try { localStorage.setItem(HKEY, JSON.stringify(st.hist)); } catch { /* 保存できない環境 */ }
   renderHist();
 }
 function renderHist() {
   $('hist').hidden = !st.hist.length;
-  $('histList').innerHTML = st.hist.map((h, i) => `<button type="button" class="it" data-i="${i}"><b>${esc(h.start)} → ${esc(h.goal)}</b><span class="pill ${h.mode === 'challenge' ? 'd' : ''}">${h.mode === 'challenge' ? `チャレンジ ${h.route.length - 1}打${h.best ? `（最短${h.best}）` : ''}` : `最短 ${h.route.length - 1}`}</span><small>${esc(h.route.join(' → '))}</small></button>`).join('');
+  $('histList').innerHTML = st.hist.map((h, i) => `<button type="button" class="it" data-i="${i}"><b>${esc(routeLabel(h.start, h.vias, h.goal))}</b><span class="pill ${h.mode === 'challenge' ? 'd' : ''}">${h.mode === 'challenge' ? `チャレンジ ${h.route.length - 1}打${h.best ? `（最短${h.best}）` : ''}` : `最短 ${h.route.length - 1}`}</span><small>${esc(h.route.join(' → '))}</small></button>`).join('');
 }
 $('histList').onclick = (e) => {
   const b = e.target.closest('button[data-i]'); if (!b) return;
   const h = st.hist[+b.dataset.i];
-  $('startIn').value = h.start; $('goalIn').value = h.goal; st.mode = h.mode; renderMode();
+  $('startIn').value = h.start; $('goalIn').value = h.goal; setVias(h.vias || []); st.mode = h.mode; renderMode();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 $('clrHist').onclick = () => { st.hist = []; try { localStorage.removeItem(HKEY); } catch { /* 無視 */ } renderHist(); toast('履歴を消しました'); };
@@ -1323,7 +1425,12 @@ $('vChips').onclick = (e) => { const b = e.target.closest('button[data-i]'); if 
 document.addEventListener('keydown', (e) => { if (!$('viewer').hidden && e.key === 'Escape') $('vClose').click(); });
 
 // ----- チャレンジモード（自分でリンクを押して到着を目指す） -----
-const C = { on: false, token: 0, start: '', goal: '', trail: [], best: null, bestRoutes: null, ctrl: null, done: false };
+const C = { on: false, token: 0, start: '', goal: '', vias: [], points: [], next: 1, trail: [], best: null, bestRoutes: null, ctrl: null, done: false };
+const matchT = (t, target) => t === target || aliasesOf(target).has(t);
+function updGoalRow() {
+  const left = C.points.slice(C.next, -1);
+  $('cGoalRow').innerHTML = left.length ? `次の経由地：<b>${esc(left[0])}</b>${left.length > 1 ? `（ほか${left.length - 1}）` : ''} ➞ 目標：<b>${esc(C.goal)}</b>` : `目標：<b>${esc(C.goal)}</b>`;
+}
 const NS_RE = /^(Wikipedia|WP|Category|Template|File|Image|Portal|Help|Special|Module|MediaWiki|User|Talk|Draft|プロジェクト|カテゴリ|テンプレート|ファイル|画像|ポータル|ヘルプ|特別|モジュール|利用者|ノート|議論)(\s*‐?ノート)?:/i;
 const isGoalT = (t) => t === C.goal || aliasesOf(C.goal).has(t);
 
@@ -1342,7 +1449,7 @@ async function startChallenge() {
   const signal = C.ctrl.signal;
   Object.assign(C, { on: true, done: false, best: null, bestRoutes: null, trail: [] });
   $('chal').hidden = false; document.body.style.overflow = 'hidden';
-  $('cDone').hidden = true; $('cBox').innerHTML = ''; $('cGoal').textContent = goalQ; setBest('…'); $('cNow').textContent = '0';
+  $('cDone').hidden = true; $('cBox').innerHTML = ''; $('cGoalRow').textContent = '目標：' + goalQ; setBest('…'); $('cNow').textContent = '0';
   try {
     let start;
     const sq = $('startIn').value.trim();
@@ -1351,12 +1458,15 @@ async function startChallenge() {
     const g = await resolveTitle(goalQ, signal);
     if (!g) throw new Error(`「${goalQ}」の記事が見つかりませんでした`);
     C.start = start; C.goal = g.title;
-    $('startIn').value = start; $('goalIn').value = g.title; $('cGoal').textContent = g.title;
-    await fetchAliases([g.title], signal);
+    $('startIn').value = start; $('goalIn').value = g.title;
+    C.vias = await resolveVias(signal);
+    C.points = [start, ...C.vias, g.title]; C.next = 1;
+    await fetchAliases(C.points.slice(1), signal);
+    updGoalRow();
     C.trail = [start];
     cShow(start);
     // 裏で最短打数を計算（年・日付も含めた本当の最短を目指す）
-    shortestRoutes(start, g.title, { avoidDates: false, blocked: new Set() }, signal)
+    routeVia(C.points, { avoidDates: false, blocked: new Set() }, signal)
       .then((r) => {
         if (!C.on || C.start !== start) return;
         if (r) { C.best = r.hops; C.bestRoutes = r.routes; setBest(String(r.hops)); }
@@ -1389,7 +1499,14 @@ async function cShow(title) {
   box.scrollTop = 0;
   box.classList.remove('fade');
   updBar();
-  if (isGoalT(real) || isGoalT(title)) finishChallenge('goal');
+  const tgt = C.points[C.next];
+  const last = C.next === C.points.length - 1;
+  if (matchT(real, tgt) || matchT(title, tgt)) {
+    if (last) finishChallenge('goal');
+    else { C.next++; updGoalRow(); toast(`経由地「${tgt}」を通過！`); }
+  } else if (!last && (matchT(real, C.goal) || matchT(title, C.goal))) {
+    toast(`先に経由地「${tgt}」を通ってください`);
+  }
 }
 
 $('cBox').addEventListener('click', (e) => {
@@ -1414,7 +1531,7 @@ function finishChallenge(kind) {
   renderDone(kind);
   if (kind === 'goal') {
     const route = [...C.trail];
-    st.hist = [{ mode: 'challenge', start: C.start, goal: C.goal, route, best: C.best, at: Date.now() }, ...st.hist].slice(0, 12);
+    st.hist = [{ mode: 'challenge', start: C.start, goal: C.goal, vias: C.vias, route, best: C.best, at: Date.now() }, ...st.hist].slice(0, 12);
     try { localStorage.setItem(HKEY, JSON.stringify(st.hist)); } catch { /* 保存できない環境 */ }
     renderHist();
   }
@@ -1438,7 +1555,7 @@ function renderDone(kind) {
     <p class="ctrail cans">${C.bestRoutes ? esc(C.bestRoutes[0].join(' → ')) : esc(best === null ? '計算中…' : '見つかりませんでした')}</p>
     ${C.bestRoutes && C.bestRoutes.length > 1 ? `<p class="clab">同じ${best}打の別解もあります</p>${C.bestRoutes.slice(1).map((r, i) => `<p class="ctrail calt"><span>別解${i + 1}</span> ${esc(r.join(' → '))}</p>`).join('')}` : ''}
     <div class="cbtns">
-      ${kind === 'goal' ? `<a class="cx" href="${esc('https://x.com/intent/tweet?' + new URLSearchParams({ text: chalShareText() }).toString())}" target="_blank" rel="noopener noreferrer">Xでシェア</a><button type="button" class="p3" id="cCopy">結果をコピー</button>` : ''}
+      ${kind === 'goal' ? `<button type="button" class="p3" id="cCopy">結果をシェア</button><a class="cx" href="${esc('https://x.com/intent/tweet?' + new URLSearchParams({ text: chalShareText() }).toString())}" target="_blank" rel="noopener noreferrer">Xでポスト</a>` : ''}
       ${C.bestRoutes ? '<button type="button" class="p1" id="cSeeBest">最短ルートを見る</button>' : ''}
       <button type="button" class="p2" id="cAgain">別の言葉でもう一度</button>
       ${kind !== 'goal' ? '<button type="button" class="p3" id="cResume">続ける</button>' : ''}
@@ -1450,9 +1567,9 @@ function renderDone(kind) {
 $('cCard').addEventListener('click', (e) => {
   const id = e.target.closest('button')?.id;
   if (id === 'cCopy') {
-    copyText(chalShareText());
+    nativeShare(chalShareText());
   } else if (id === 'cSeeBest') {
-    const r = { mode: 'shortest', start: C.start, goal: C.goal, routes: C.bestRoutes, detourEnd: -1, notes: [] };
+    const r = { mode: 'shortest', start: C.start, goal: C.goal, vias: C.vias, routes: C.bestRoutes, detourEnd: -1, notes: [] };
     closeChallenge();
     show(r);
   } else if (id === 'cAgain') {
@@ -1467,15 +1584,11 @@ $('cCard').addEventListener('click', (e) => {
   }
 });
 
-function chalUrl() {
-  const base = pageUrl();
-  if (!base) return '';
-  return base + '?' + new URLSearchParams({ s: C.start, g: C.goal }).toString();
-}
+function chalUrl() { return shareUrlFor(C.start, C.vias, C.goal); }
 function chalShareText() {
   const n = C.trail.length - 1;
   const score = C.best == null ? `${n}打でゴール⛳` : n <= C.best ? `${n}打でゴール⛳ 最短タイ！` : `${n}打でゴール⛳（最短${C.best}打）`;
-  const lines = [`${C.start} ➞ ${C.goal}`, score, 'あなたは何打で行ける？', '#Wikipediaゴルフ'];
+  const lines = [routeLabel(C.start, C.vias, C.goal), score, 'あなたは何打で行ける？', '#Wikipediaゴルフ'];
   const u = chalUrl();
   if (u) lines.push(u);
   return lines.join('\n');
@@ -1495,6 +1608,7 @@ async function copyText(text) {
   if (q.get('g')) {
     $('goalIn').value = q.get('g');
     $('startIn').value = q.get('s') || '';
+    setVias(q.getAll('v').slice(0, MAX_VIA));
     st.mode = 'challenge';
     setTimeout(() => toast('お題がセットされました。「チャレンジ開始」で挑戦！'), 300);
   }
