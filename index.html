@@ -180,6 +180,7 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
 .vload{color:#54595d;padding:30px 0;text-align:center}
 .vcap{padding:8px 4px 2px;font-weight:700;font-size:13px;line-height:1.4}
 .vcap:empty{display:none}
+.vbox .vfrom{font-size:12px;color:#54595d;margin:-6px 0 10px}
 .vcap b{color:#ffe066}
 .vctl{display:grid;grid-template-columns:1fr 1.4fr 1fr auto;gap:6px;margin-top:6px}
 .vctl button{min-height:40px;border-radius:10px;font-size:13px!important;border:1px solid rgb(255 255 255 / .25);background:rgb(255 255 255 / .08);color:#fff;font-weight:700;font-size:15px}
@@ -1162,7 +1163,9 @@ async function vGoto(i) {
     let html;
     try { html = cleanHtml(await getHtml(title)); } catch { html = '<p class="vload">記事を読み込めませんでした。</p>'; }
     if (tk !== V.token) return;
-    box.innerHTML = `<h1 class="vt">${esc(title)}</h1>${html}`;
+    const fromNote = V.via && i > 0 ? `<div class="vfrom">（${esc(V.via)}から転送）</div>` : '';
+    V.via = '';
+    box.innerHTML = `<h1 class="vt">${esc(title)}</h1>${fromNote}${html}`;
     box.scrollTop = 0;
     box.classList.remove('fade');
     V.shown = title;
@@ -1191,7 +1194,8 @@ async function vGoto(i) {
   $('vCap').innerHTML = `「<b>${esc(next)}</b>」へのリンクを探しています…`;
   if (!V.playing) {
     link.classList.add('hit');
-    $('vCap').innerHTML = `次は「<b>${esc(link.textContent)}</b>」を押します。「再生」で続きを見られます。`;
+    const via2 = link.dataset.t !== next ? `（「${esc(next)}」へ転送）` : '';
+    $('vCap').innerHTML = `次は「<b>${esc(link.textContent)}</b>」を押します${via2}。「再生」で続きを見られます。`;
     return;
   }
   await vwait(700);
@@ -1200,7 +1204,9 @@ async function vGoto(i) {
   await smoothScroll(box, Math.max(0, target), tk);
   if (tk !== V.token) return;
   link.classList.add('hit');
-  $('vCap').innerHTML = `「<b>${esc(link.textContent)}</b>」を押します`;
+  const via = link.dataset.t !== next ? link.dataset.t : '';
+  $('vCap').innerHTML = via ? `「<b>${esc(link.textContent)}</b>」を押します（「${esc(via)}」は「${esc(next)}」へ転送されます）` : `「<b>${esc(link.textContent)}</b>」を押します`;
+  V.via = via;
   await vwait(800);
   if (tk !== V.token) return;
   const lr = link.getBoundingClientRect(), br = box.getBoundingClientRect();
