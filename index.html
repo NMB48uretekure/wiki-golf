@@ -258,7 +258,6 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
     <g fill="#16213e" stroke="#fff" stroke-width="5"><circle cx="10" cy="180" r="10"/><circle cx="250" cy="60" r="10"/><circle cx="510" cy="40" r="10"/><circle cx="250" cy="140" r="10"/><circle cx="60" cy="30" r="10"/><circle cx="500" cy="190" r="10"/></g>
   </svg>
   <h1>ウィキ乗り換え案内</h1>
-  <p>好きな言葉から好きな言葉へ。Wikipediaの本文リンクだけを乗り継いで、最短ルートを探すか、自分でたどって打数に挑戦します。</p>
 </header>
 
 <main class="wrap">
@@ -931,7 +930,7 @@ function attachSuggest(input, list) {
     timer = setTimeout(async () => {
       try {
         const d = await api({ action: 'opensearch', search: q, namespace: '0', limit: '7' }, null, false);
-        if (input.value.trim() !== q) return;
+        if (input.value.trim() !== q || st.busy || C.on || document.activeElement !== input) return;
         items = Array.isArray(d?.[1]) ? d[1] : [];
         idx = -1;
         if (!items.length) return close();
