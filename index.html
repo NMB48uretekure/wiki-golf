@@ -215,6 +215,11 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
 .ccard .cbig small{font-size:20px}
 .ccard .ccmp{margin:4px 0 0;font-weight:700}
 .ccard .ctrail{margin:12px 0 0;font-size:13px;color:var(--sub);text-align:left;background:var(--soft);border-radius:10px;padding:10px;overflow-wrap:anywhere}
+.ccard .clab{margin:12px 0 0;font-size:12px;font-weight:700;color:var(--sub);text-align:left}
+.ccard .clab+.ctrail{margin-top:4px}
+.ccard .cans{color:var(--ink);font-weight:700;border:2px solid var(--red);line-height:1.8}
+.ccard .calt{margin-top:4px;color:var(--ink)}
+.ccard .calt span{font-size:11px;font-weight:700;color:var(--teal)}
 .ccard .cbtns{display:grid;gap:8px;margin-top:14px}
 .ccard .cbtns button{min-height:46px;border-radius:12px;border:0;font-weight:700;font-size:15px}
 .ccard .cx{display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:12px;background:#000;color:#fff;font-weight:700;font-size:15px;text-decoration:none}
@@ -1427,7 +1432,11 @@ function renderDone(kind) {
     <h2>${kind === 'goal' ? 'ゴール！' : 'チャレンジ終了'}</h2>
     ${kind === 'goal' ? `<p class="cbig">${n}<small>打</small></p>` : ''}
     <p class="ccmp">${esc(cmp)}</p>
+    <p class="clab">あなたのルート（${n}打）</p>
     <p class="ctrail">${esc(C.trail.join(' → '))}</p>
+    <p class="clab">模範解答${best != null ? `（最短${best}打）` : ''}</p>
+    <p class="ctrail cans">${C.bestRoutes ? esc(C.bestRoutes[0].join(' → ')) : esc(best === null ? '計算中…' : '見つかりませんでした')}</p>
+    ${C.bestRoutes && C.bestRoutes.length > 1 ? `<p class="clab">同じ${best}打の別解もあります</p>${C.bestRoutes.slice(1).map((r, i) => `<p class="ctrail calt"><span>別解${i + 1}</span> ${esc(r.join(' → '))}</p>`).join('')}` : ''}
     <div class="cbtns">
       ${kind === 'goal' ? `<a class="cx" href="${esc('https://x.com/intent/tweet?' + new URLSearchParams({ text: chalShareText() }).toString())}" target="_blank" rel="noopener noreferrer">Xでシェア</a><button type="button" class="p3" id="cCopy">結果をコピー</button>` : ''}
       ${C.bestRoutes ? '<button type="button" class="p1" id="cSeeBest">最短ルートを見る</button>' : ''}
