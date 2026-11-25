@@ -897,14 +897,6 @@ async function search() {
   startProg();
   openViewerLoading();
   try {
-    E.hooks.progress('到着の記事を確認しています…', '準備');
-    const g = await resolveTitle(goalQ, signal);
-    if (!g) { msg('warn', '到着の記事が見つかりません', `「${goalQ}」に当たる日本語版Wikipediaの記事が見つかりませんでした。別の言い方で試してください。`); return; }
-    const goal = g.title;
-    $('goalIn').value = goal;
-    if (g.note) notes.push(g.note);
-    await fetchAliases([goal], signal);
-
     let startQ = $('startIn').value.trim();
     let isRandom = !startQ;
     let start;
@@ -919,6 +911,15 @@ async function search() {
       if (s.note) notes.push(s.note);
     }
     $('startIn').value = start;
+    previewStart(start);
+    E.hooks.progress('到着の記事を確認しています…', '準備');
+    const g = await resolveTitle(goalQ, signal);
+    if (!g) { msg('warn', '到着の記事が見つかりません', `「${goalQ}」に当たる日本語版Wikipediaの記事が見つかりませんでした。別の言い方で試してください。`); return; }
+    const goal = g.title;
+    $('goalIn').value = goal;
+    if (g.note) notes.push(g.note);
+    await fetchAliases([goal], signal);
+
 
     if (aliasesOf(goal).has(start) || start === goal) {
       return await show({ mode, start, goal, routes: [[goal]], detourEnd: -1, notes });
@@ -959,12 +960,11 @@ async function search() {
 }
 $('form').addEventListener('submit', (e) => { e.preventDefault(); for (const id of ['startSug', 'goalSug']) { $(id).hidden = true; } document.activeElement?.blur?.(); search(); });
 $('againBtn').onclick = () => {
-  if (!st.result) return;
-  $('startIn').value = st.result.start; $('goalIn').value = st.result.goal;
+  if (!st.result || st.busy) return;
+  // 到着はそのまま、出発をランダムな別の言葉にして探し直す
+  $('startIn').value = '';
+  $('goalIn').value = st.result.goal;
   st.mode = st.result.mode; renderMode();
-  if (st.result.mode === 'shortest' && st.result.routes.length > 1) {
-    st.sel = (st.sel + 1) % st.result.routes.length; render(); toast(`ルート${st.sel + 1}を表示しています`); return;
-  }
   search();
 };
 
@@ -1002,8 +1002,7 @@ function render() {
   $('res').classList.toggle('det', det);
   $('rNote').hidden = !r.notes.length;
   $('rNote').textContent = r.notes.join(' ');
-  $('againBtn').textContent = det ? '別の寄り道を探す' : (r.routes.length > 1 ? '同じ長さの別ルート' : 'もう一度探す');
-  $('againBtn').hidden = hops === 0;
+  $('againBtn').textContent = '別の言葉を探す';
   $('legend').hidden = !det;
   const alts = $('alts');
   alts.hidden = r.routes.length < 2;
@@ -1069,7 +1068,7 @@ $('histList').onclick = (e) => {
 $('clrHist').onclick = () => { st.hist = []; try { localStorage.removeItem(HKEY); } catch { /* 無視 */ } renderHist(); toast('履歴を消しました'); };
 
 // ----- ルート再生（記事を開いてリンクまでスクロールし、押して次へ） -----
-const V = { route: [], i: 0, playing: false, loading: false, speed: 1, html: new Map(), token: 0 };
+const V = { route: [], i: 0, playing: false, loading: false, speed: 1, html: new Map(), token: 0, shown: null };
 const SPEEDS = [1, 2, 0.5];
 const vwait = (ms) => new Promise((r) => setTimeout(r, ms / V.speed));
 
@@ -1154,14 +1153,17 @@ async function vGoto(i) {
   const box = $('vBox');
   const title = V.route[i];
   const last = V.route.length - 1;
-  box.classList.add('fade');
-  $('vCap').textContent = `「${title}」を開いています…`;
-  let html;
-  try { html = cleanHtml(await getHtml(title)); } catch { html = '<p class="vload">記事を読み込めませんでした。</p>'; }
-  if (tk !== V.token) return;
-  box.innerHTML = `<h1 class="vt">${esc(title)}</h1>${html}${i === last ? '' : ''}`;
-  box.scrollTop = 0;
-  box.classList.remove('fade');
+  if (V.shown !== title) {
+    box.classList.add('fade');
+    $('vCap').textContent = '';
+    let html;
+    try { html = cleanHtml(await getHtml(title)); } catch { html = '<p class="vload">記事を読み込めませんでした。</p>'; }
+    if (tk !== V.token) return;
+    box.innerHTML = `<h1 class="vt">${esc(title)}</h1>${html}`;
+    box.scrollTop = 0;
+    box.classList.remove('fade');
+    V.shown = title;
+  }
   if (i < last) getHtml(V.route[i + 1]).catch(() => {});
   if (i === last) {
     box.insertAdjacentHTML('afterbegin', '<div class="arrive"><b>到着！</b></div>');
@@ -1213,16 +1215,41 @@ function openViewerLoading() {
   V.token++; V.loading = true; V.playing = false;
   $('viewer').hidden = false;
   document.body.style.overflow = 'hidden';
-  $('vStep').innerHTML = `ルートを探しています<small>${esc($('startIn').value.trim() || 'ランダムな言葉')} → ${esc($('goalIn').value.trim())}</small>`;
+  V.shown = null;
+  $('vStep').innerHTML = '';
   $('vChips').innerHTML = '';
   $('vUrl').textContent = 'ja.wikipedia.org';
-  $('vBox').innerHTML = '<div class="vsearch"><div class="spin"></div><p class="vs1" id="vs1">Wikipediaに問い合わせています…</p><p class="vs2" id="vs2"></p></div>';
-  $('vCap').textContent = 'ルートが見つかると、ここで記事を開いてたどっていきます。';
-  setCtl(false);
+  $('vBox').innerHTML = '';
+  $('vCap').textContent = '';
+  document.querySelector('.vctl').hidden = true;
+}
+// 探している間は出発の記事を先に開いて、読んでいるようにゆっくりスクロールする
+async function previewStart(title) {
+  if (!V.loading) return;
+  $('vStep').innerHTML = `出発：${esc(title)}`;
+  $('vUrl').textContent = 'ja.wikipedia.org/wiki/' + title;
+  let html;
+  try { html = cleanHtml(await getHtml(title)); } catch { return; }
+  if (!V.loading) return;
+  const box = $('vBox');
+  box.innerHTML = `<h1 class="vt">${esc(title)}</h1>${html}`;
+  box.scrollTop = 0;
+  V.shown = title;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let last = performance.now();
+  const idle = (now) => {
+    if (!V.loading || V.shown !== title) return;
+    const max = (box.scrollHeight - box.clientHeight) * 0.6;
+    if (box.scrollTop < max) box.scrollTop += (now - last) * 0.025;
+    last = now;
+    requestAnimationFrame(idle);
+  };
+  setTimeout(() => requestAnimationFrame((n) => { last = n; idle(n); }), 1200);
 }
 async function openViewer() {
   const r = st.result; if (!r) return;
   V.loading = false;
+  document.querySelector('.vctl').hidden = false;
   setCtl(true);
   V.route = r.routes[st.sel] || r.routes[0];
   V.playing = true;
@@ -1231,7 +1258,7 @@ async function openViewer() {
   try { await fetchAliases(V.route); } catch { /* 別名が取れなくても続ける */ }
   vGoto(0);
 }
-function closeViewer() { V.token++; V.playing = false; V.loading = false; $('viewer').hidden = true; document.body.style.overflow = ''; }
+function closeViewer() { V.token++; V.playing = false; V.loading = false; V.shown = null; $('viewer').hidden = true; document.body.style.overflow = ''; }
 $('playBtn').onclick = openViewer;
 $('vClose').onclick = () => { if (V.loading && st.busy) st.ctrl?.abort(); closeViewer(); };
 $('vPlay').onclick = () => {
