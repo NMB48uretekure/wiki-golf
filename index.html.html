@@ -1,0 +1,2991 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NMB48への最短ルート検索</title>
+  <meta name="description" content="どんな単語からでもWikipediaの本文リンクをたどって「NMB48」へ到達するルートを検索できるWebツールです。片方向で1手ずつたどる「連想モード」と「最短ルート検索」に対応。">
+ 
+  <!-- =========================================================================
+       OGP・X（旧Twitter）カード設定
+       公開時は下記の「https://example.com/」をご自身の公開URLに書き換えてください
+       ========================================================================= -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="NMB48への最短ルート検索">
+  <meta property="og:title" content="NMB48への最短ルート検索">
+  <meta property="og:description" content="どんな単語からでもWikipediaの本文リンクをたどって「NMB48」へ到達するルートを検索！">
+  <meta property="og:url" content="https://example.com/">
+  <!-- OGP画像を用意した場合はURLを設定してください（推奨: 1200x630px） -->
+  <!-- <meta property="og:image" content="https://example.com/ogp.png" /> -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="NMB48への最短ルート検索">
+  <meta name="twitter:description" content="どんな単語からでもWikipediaの本文リンクをたどって「NMB48」へ到達するルートを検索！">
+  <!-- <meta name="twitter:image" content="https://example.com/ogp.png" /> -->
+ 
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            verdy: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              200: '#fed7aa',
+              300: '#fdba74',
+              400: '#fb923c',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+              900: '#7c2d12',
+              950: '#431407',
+            },
+            gold: {
+              400: '#f472b6',
+              500: '#e6007e',
+              600: '#be185d',
+            }
+          },
+          fontFamily: {
+            sans: ['"Inter"', '"Noto Sans JP"', '"Hiragino Kaku Gothic ProN"', '"Meiryo"', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+ 
+  <!-- Google Fonts (Inter + Noto Sans JP) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Noto+Sans+JP:wght@400;500;700;800&amp;display=swap" rel="stylesheet">
+ 
+  <style>
+    body {
+      font-family: "Inter", "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+    }
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fade-up {
+      animation: fadeSlideUp 0.28s ease-out forwards;
+    }
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:"Inter", "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.-bottom-24{bottom:-6rem}.-left-24{left:-6rem}.-right-24{right:-6rem}.-top-24{top:-6rem}.bottom-5{bottom:1.25rem}.left-0{left:0px}.left-1\/2{left:50%}.right-0{right:0px}.right-2\.5{right:0.625rem}.top-1\/2{top:50%}.top-full{top:100%}.z-10{z-index:10}.z-30{z-index:30}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-2{margin-bottom:0.5rem}.mb-2\.5{margin-bottom:0.625rem}.mb-3{margin-bottom:0.75rem}.mr-1{margin-right:0.25rem}.mt-0\.5{margin-top:0.125rem}.mt-1{margin-top:0.25rem}.mt-1\.5{margin-top:0.375rem}.mt-2{margin-top:0.5rem}.mt-3{margin-top:0.75rem}.mt-4{margin-top:1rem}.mt-auto{margin-top:auto}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-2{height:0.5rem}.h-3\.5{height:0.875rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-72{height:18rem}.h-9{height:2.25rem}.max-h-64{max-height:16rem}.min-h-screen{min-height:100vh}.w-2{width:0.5rem}.w-3\.5{width:0.875rem}.w-4{width:1rem}.w-5{width:1.25rem}.w-72{width:18rem}.w-9{width:2.25rem}.w-full{width:100%}.min-w-0{min-width:0px}.max-w-3xl{max-width:48rem}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.-translate-x-1\/2{--tw-translate-x:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-translate-y-1\/2{--tw-translate-y:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes ping{75%, 100%{transform:scale(2);opacity:0}}.animate-ping{animation:ping 1s cubic-bezier(0, 0, 0.2, 1) infinite}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}@keyframes spin{to{transform:rotate(360deg)}}.animate-spin{animation:spin 1s linear infinite}.cursor-pointer{cursor:pointer}.select-none{-webkit-user-select:none;user-select:none}.list-none{list-style-type:none}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-2\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.625rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.625rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.divide-y > :not([hidden]) ~ :not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(1px * calc(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px * var(--tw-divide-y-reverse))}.divide-slate-100 > :not([hidden]) ~ :not([hidden]){--tw-divide-opacity:1;border-color:rgb(241 245 249 / var(--tw-divide-opacity, 1))}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.break-words{overflow-wrap:break-word}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-t{border-top-width:1px}.border-slate-100{--tw-border-opacity:1;border-color:rgb(241 245 249 / var(--tw-border-opacity, 1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-slate-200\/70{border-color:rgb(226 232 240 / 0.7)}.border-slate-200\/80{border-color:rgb(226 232 240 / 0.8)}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1))}.border-verdy-100{--tw-border-opacity:1;border-color:rgb(255 237 213 / var(--tw-border-opacity, 1))}.border-verdy-200{--tw-border-opacity:1;border-color:rgb(254 215 170 / var(--tw-border-opacity, 1))}.border-verdy-300{--tw-border-opacity:1;border-color:rgb(253 186 116 / var(--tw-border-opacity, 1))}.border-white\/15{border-color:rgb(255 255 255 / 0.15)}.border-white\/20{border-color:rgb(255 255 255 / 0.2)}.border-white\/25{border-color:rgb(255 255 255 / 0.25)}.bg-black\/15{background-color:rgb(0 0 0 / 0.15)}.bg-black\/20{background-color:rgb(0 0 0 / 0.2)}.bg-gold-400{--tw-bg-opacity:1;background-color:rgb(244 114 182 / var(--tw-bg-opacity, 1))}.bg-gold-500{--tw-bg-opacity:1;background-color:rgb(230 0 126 / var(--tw-bg-opacity, 1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-slate-200\/80{background-color:rgb(226 232 240 / 0.8)}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.bg-slate-50\/60{background-color:rgb(248 250 252 / 0.6)}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-verdy-100{--tw-bg-opacity:1;background-color:rgb(255 237 213 / var(--tw-bg-opacity, 1))}.bg-verdy-300{--tw-bg-opacity:1;background-color:rgb(253 186 116 / var(--tw-bg-opacity, 1))}.bg-verdy-50{--tw-bg-opacity:1;background-color:rgb(255 247 237 / var(--tw-bg-opacity, 1))}.bg-verdy-50\/70{background-color:rgb(255 247 237 / 0.7)}.bg-verdy-500{--tw-bg-opacity:1;background-color:rgb(249 115 22 / var(--tw-bg-opacity, 1))}.bg-verdy-600{--tw-bg-opacity:1;background-color:rgb(234 88 12 / var(--tw-bg-opacity, 1))}.bg-verdy-900\/50{background-color:rgb(124 45 18 / 0.5)}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/15{background-color:rgb(255 255 255 / 0.15)}.bg-white\/20{background-color:rgb(255 255 255 / 0.2)}.bg-emerald-300{--tw-bg-opacity:1;background-color:rgb(110 231 183 / var(--tw-bg-opacity, 1))}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.from-verdy-700{--tw-gradient-from:#c2410c var(--tw-gradient-from-position);--tw-gradient-to:rgb(194 65 12 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-verdy-600{--tw-gradient-to:rgb(234 88 12 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #ea580c var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-verdy-800{--tw-gradient-to:#9a3412 var(--tw-gradient-to-position)}.fill-current{fill:currentColor}.p-1{padding:0.25rem}.p-1\.5{padding:0.375rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.py-7{padding-top:1.75rem;padding-bottom:1.75rem}.pb-5{padding-bottom:1.25rem}.pr-10{padding-right:2.5rem}.pt-1{padding-top:0.25rem}.pt-3\.5{padding-top:0.875rem}.text-center{text-align:center}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-semibold{font-weight:600}.leading-relaxed{line-height:1.625}.leading-snug{line-height:1.375}.tracking-tight{letter-spacing:-0.025em}.tracking-wide{letter-spacing:0.025em}.text-gold-400{--tw-text-opacity:1;color:rgb(244 114 182 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.text-verdy-100{--tw-text-opacity:1;color:rgb(255 237 213 / var(--tw-text-opacity, 1))}.text-verdy-100\/90{color:rgb(255 237 213 / 0.9)}.text-verdy-50{--tw-text-opacity:1;color:rgb(255 247 237 / var(--tw-text-opacity, 1))}.text-verdy-600{--tw-text-opacity:1;color:rgb(234 88 12 / var(--tw-text-opacity, 1))}.text-verdy-700{--tw-text-opacity:1;color:rgb(194 65 12 / var(--tw-text-opacity, 1))}.text-verdy-800{--tw-text-opacity:1;color:rgb(154 52 18 / var(--tw-text-opacity, 1))}.text-verdy-900\/90{color:rgb(124 45 18 / 0.9)}.text-verdy-950{--tw-text-opacity:1;color:rgb(67 20 7 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.underline{-webkit-text-decoration-line:underline;text-decoration-line:underline}.decoration-gold-400{-webkit-text-decoration-color:#f472b6;text-decoration-color:#f472b6}.decoration-2{text-decoration-thickness:2px}.underline-offset-4{text-underline-offset:4px}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.opacity-10{opacity:0.1}.opacity-25{opacity:0.25}.opacity-85{opacity:0.85}.shadow{--tw-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-verdy-700\/20{--tw-shadow-color:rgb(194 65 12 / 0.2);--tw-shadow:var(--tw-shadow-colored)}.outline-none{outline:2px solid transparent;outline-offset:2px}.blur-3xl{--tw-blur:blur(64px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.selection\:bg-verdy-200 *::selection{--tw-bg-opacity:1;background-color:rgb(254 215 170 / var(--tw-bg-opacity, 1))}.selection\:text-verdy-900 *::selection{--tw-text-opacity:1;color:rgb(124 45 18 / var(--tw-text-opacity, 1))}.selection\:bg-verdy-200::selection{--tw-bg-opacity:1;background-color:rgb(254 215 170 / var(--tw-bg-opacity, 1))}.selection\:text-verdy-900::selection{--tw-text-opacity:1;color:rgb(124 45 18 / var(--tw-text-opacity, 1))}.placeholder\:text-slate-400::placeholder{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.hover\:border-slate-300:hover{--tw-border-opacity:1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1))}.hover\:bg-rose-50:hover{--tw-bg-opacity:1;background-color:rgb(255 241 242 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-100:hover{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-50:hover{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.hover\:bg-verdy-700:hover{--tw-bg-opacity:1;background-color:rgb(194 65 12 / var(--tw-bg-opacity, 1))}.hover\:bg-verdy-900\/75:hover{background-color:rgb(124 45 18 / 0.75)}.hover\:bg-white\/60:hover{background-color:rgb(255 255 255 / 0.6)}.hover\:bg-verdy-100:hover{--tw-bg-opacity:1;background-color:rgb(255 237 213 / var(--tw-bg-opacity, 1))}.hover\:text-rose-600:hover{--tw-text-opacity:1;color:rgb(225 29 72 / var(--tw-text-opacity, 1))}.hover\:text-slate-600:hover{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.hover\:text-slate-800:hover{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.hover\:text-verdy-600:hover{--tw-text-opacity:1;color:rgb(234 88 12 / var(--tw-text-opacity, 1))}.hover\:text-verdy-800:hover{--tw-text-opacity:1;color:rgb(154 52 18 / var(--tw-text-opacity, 1))}.hover\:opacity-90:hover{opacity:0.9}.focus\:border-verdy-600:focus{--tw-border-opacity:1;border-color:rgb(234 88 12 / var(--tw-border-opacity, 1))}.focus\:bg-white:focus{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.focus\:ring-4:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-verdy-600\/15:focus{--tw-ring-color:rgb(234 88 12 / 0.15)}.active\:scale-\[0\.99\]:active{--tw-scale-x:0.99;--tw-scale-y:0.99;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.disabled\:cursor-not-allowed:disabled{cursor:not-allowed}.disabled\:opacity-60:disabled{opacity:0.6}.group[open] .group-open\:rotate-180{--tw-rotate:180deg;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@media (min-width: 640px){.sm\:flex-row{flex-direction:row}.sm\:gap-1\.5{gap:0.375rem}.sm\:p-5{padding:1.25rem}.sm\:p-6{padding:1.5rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:py-8{padding-top:2rem;padding-bottom:2rem}.sm\:py-9{padding-top:2.25rem;padding-bottom:2.25rem}.sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}.sm\:text-\[11px\]{font-size:11px}.sm\:text-base{font-size:1rem;line-height:1.5rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}.sm\:text-xl{font-size:1.25rem;line-height:1.75rem}}</style></head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-verdy-200 selection:text-verdy-900">
+ 
+  <!-- ヘッダー -->
+  <header class="bg-gradient-to-br from-verdy-700 via-verdy-600 to-verdy-800 text-white shadow-lg relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10 pointer-events-none" aria-hidden="true">
+      <div class="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-gold-400 blur-3xl"></div>
+      <div class="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-verdy-300 blur-3xl"></div>
+    </div>
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-7 sm:py-9 relative z-10">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <span class="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide bg-white/15 backdrop-blur-sm text-verdy-50 px-3 py-1 rounded-full border border-white/20">
+          <span class="w-2 h-2 rounded-full bg-emerald-300" id="cacheStatusDot"></span>
+          <span id="cacheStatusText">準備完了（ゴール情報を準備中...）</span>
+        </span>
+        <span class="text-xs font-medium text-verdy-100/90 bg-black/15 px-2.5 py-1 rounded-full">
+          日本語版Wikipedia API連携
+        </span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
+        NMB48への最短ルート検索
+      </h1>
+      <p class="mt-2 text-sm sm:text-base text-verdy-100 leading-relaxed">
+        好きな言葉からWikipediaの本文リンクをたどり、<strong class="text-white font-bold underline decoration-gold-400 decoration-2 underline-offset-4">NMB48</strong>を目指します。片方向で1手ずつ連想する「連想モード」と「最短ルート検索」を切り替えられます。
+      </p>
+    </div>
+  </header>
+ 
+  <!-- メインコンテンツ -->
+  <main class="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+ 
+    <!-- 検索フォームカード -->
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-6">
+      <form id="searchForm" class="space-y-4" autocomplete="off">
+ 
+        <!-- 検索モード切り替えタブ（デフォルト：連想モード） -->
+        <div>
+          <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200/70" role="tablist" aria-label="検索モード切り替え">
+            <button type="button" id="modeAssociationBtn" role="tab" aria-selected="true" class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition cursor-pointer bg-verdy-600 text-white shadow-sm">
+              <span>連想モード</span>
+              <span id="modeAssociationSub" class="text-[10px] sm:text-[11px] font-semibold px-1.5 py-0.5 rounded bg-white/20 text-verdy-50">片方向・1手ずつ</span>
+            </button>
+            <button type="button" id="modeShortestBtn" role="tab" aria-selected="false" class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition cursor-pointer text-slate-600 hover:text-slate-800 hover:bg-white/60">
+              <span>最短ルート検索</span>
+              <span id="modeShortestSub" class="text-[10px] sm:text-[11px] font-semibold px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-500">最短クリック</span>
+            </button>
+          </div>
+          <p id="modeDescription" class="mt-2 text-xs text-slate-500 leading-relaxed">出発記事の本文リンクを片方向で1手ずつ連想ゲームのようにたどり、NMB48を目指します（寄り道あり・毎回変化）。</p>
+        </div>
+ 
+        <!-- キーワード入力欄 -->
+        <div>
+          <label for="startInput" class="block text-sm font-bold text-slate-700 mb-2">
+            出発するWikipedia記事（キーワード）
+          </label>
+          <div class="flex flex-col sm:flex-row gap-2.5">
+            <div class="relative flex-1">
+              <input id="startInput" type="text" placeholder="例：たこ焼き、ピカチュウ、ブラックホール..." class="w-full px-4 py-3.5 pr-10 rounded-xl border border-slate-300 bg-slate-50/60 focus:bg-white focus:border-verdy-600 focus:ring-4 focus:ring-verdy-600/15 outline-none text-base text-slate-900 placeholder:text-slate-400 transition" aria-autocomplete="list" aria-controls="suggestList">
+              <button type="button" id="clearInputBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 rounded-lg transition cursor-pointer" aria-label="入力をクリア">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+ 
+              <!-- サジェスト候補ドロップダウン -->
+              <ul id="suggestList" role="listbox" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-30 max-h-64 overflow-y-auto divide-y divide-slate-100"></ul>
+            </div>
+ 
+            <button type="submit" id="searchBtn" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-verdy-600 hover:bg-verdy-700 active:scale-[0.99] text-white font-bold text-base shadow-sm shadow-verdy-700/20 transition cursor-pointer shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z"></path>
+              </svg>
+              <span id="searchBtnLabel">連想をスタート</span>
+            </button>
+          </div>
+        </div>
+ 
+        <!-- フィルタボタン & ランダムボタン行 -->
+        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+          <!-- 「AKB48」を除外 トグルボタン（デフォルトON） -->
+          <button type="button" id="excludeTokyoBtn" role="switch" aria-checked="true" class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl border text-sm font-semibold transition cursor-pointer select-none bg-verdy-50 border-verdy-300 text-verdy-800">
+            <span id="excludeTokyoTrack" class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors bg-verdy-600">
+              <span id="excludeTokyoKnob" style="transform: translateX(18px);" class="inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform"></span>
+            </span>
+            <span>「AKB48」を除外</span>
+          </button>
+ 
+          <button type="button" id="randomBtn" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 text-slate-700 text-sm font-semibold transition cursor-pointer">
+            <svg class="w-4 h-4 text-verdy-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span>ランダムな記事で試す</span>
+          </button>
+        </div>
+ 
+        <!-- プリセットチップ -->
+        <div class="pt-1">
+          <div class="text-xs font-semibold text-slate-500 mb-2">人気のキーワードで試す：</div>
+          <div id="presetContainer" class="flex flex-wrap gap-2">
+          <button type="button" data-preset="たこ焼き" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-verdy-100 hover:text-verdy-800 text-slate-700 text-xs sm:text-sm font-semibold transition cursor-pointer">
+            たこ焼き
+          </button>
+          <button type="button" data-preset="ピカチュウ" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-verdy-100 hover:text-verdy-800 text-slate-700 text-xs sm:text-sm font-semibold transition cursor-pointer">
+            ピカチュウ
+          </button>
+          <button type="button" data-preset="ブラックホール" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-verdy-100 hover:text-verdy-800 text-slate-700 text-xs sm:text-sm font-semibold transition cursor-pointer">
+            ブラックホール
+          </button>
+          <button type="button" data-preset="通天閣" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-verdy-100 hover:text-verdy-800 text-slate-700 text-xs sm:text-sm font-semibold transition cursor-pointer">
+            通天閣
+          </button>
+          <button type="button" data-preset="カレーライス" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-verdy-100 hover:text-verdy-800 text-slate-700 text-xs sm:text-sm font-semibold transition cursor-pointer">
+            カレーライス
+          </button>
+          <button type="button" data-preset="相対性理論" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-verdy-100 hover:text-verdy-800 text-slate-700 text-xs sm:text-sm font-semibold transition cursor-pointer">
+            相対性理論
+          </button>
+          <button type="button" data-preset="富士山" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-verdy-100 hover:text-verdy-800 text-slate-700 text-xs sm:text-sm font-semibold transition cursor-pointer">
+            富士山
+          </button>
+          <button type="button" data-preset="吉本新喜劇" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-verdy-100 hover:text-verdy-800 text-slate-700 text-xs sm:text-sm font-semibold transition cursor-pointer">
+            吉本新喜劇
+          </button></div>
+        </div>
+ 
+        <!-- ルール注記 -->
+        <div class="flex items-start gap-2 rounded-xl bg-verdy-50/70 border border-verdy-100 px-3.5 py-2.5 text-xs text-verdy-900/90 leading-relaxed">
+          <svg class="w-4 h-4 text-verdy-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span>
+            <strong>本文リンク限定ルール：</strong>記事内の脚注（出典・注釈）および下部の折りたたみ一覧表（ナビゲーションボックス／テンプレート）のリンクは常に除外して検索します。
+          </span>
+        </div>
+      </form>
+    </section>
+ 
+    <!-- 進捗パネル（検索中に表示） -->
+    <section id="progressPanel" class="hidden bg-white rounded-2xl shadow-sm border border-verdy-200 p-5 animate-fade-up">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-verdy-50 border border-verdy-100 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-verdy-600 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3.5"></circle>
+              <path class="opacity-85" fill="currentColor" d="M4 12a8 8 0 018-8v3.5a4.5 4.5 0 00-4.5 4.5H4z"></path>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span id="progressPhase" class="text-xs font-bold text-verdy-700 bg-verdy-100 px-2.5 py-0.5 rounded-full">検索準備</span>
+              <span id="progressElapsed" class="text-xs font-mono text-slate-500">0.0秒</span>
+            </div>
+            <p id="progressText" class="text-sm font-semibold text-slate-800 mt-1 break-words">
+              Wikipediaからリンク情報を取得しています...
+            </p>
+          </div>
+        </div>
+        <button type="button" id="cancelBtn" class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition shrink-0 cursor-pointer">
+          キャンセル
+        </button>
+      </div>
+ 
+      <!-- 連想モード用：リアルタイム連想チェーン表示 -->
+      <div id="liveChainWrap" class="hidden mt-4 pt-3.5 border-t border-slate-100">
+        <div class="text-[11px] font-bold text-verdy-700 mb-2 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-verdy-500 animate-ping"></span>
+          <span>現在の連想ルート（リアルタイム）：</span>
+        </div>
+        <div id="liveChainNodes" class="flex flex-wrap items-center gap-1.5"></div>
+      </div>
+ 
+      <div class="grid grid-cols-2 gap-2.5 mt-4 pt-3.5 border-t border-slate-100 text-xs">
+        <div class="bg-slate-50 rounded-xl px-3 py-2 flex items-center justify-between">
+          <span class="text-slate-500">API通信回数</span>
+          <span id="metricApiCalls" class="font-bold text-slate-700 font-mono">0回</span>
+        </div>
+        <div class="bg-slate-50 rounded-xl px-3 py-2 flex items-center justify-between">
+          <span class="text-slate-500">照合リンク数</span>
+          <span id="metricScanned" class="font-bold text-slate-700 font-mono">0件</span>
+        </div>
+      </div>
+    </section>
+ 
+    <!-- メッセージボックス（エラー・警告・通知用） -->
+    <section id="messageBox" class="hidden rounded-2xl border p-4 sm:p-5 animate-fade-up" role="alert">
+      <div class="flex items-start gap-3">
+        <div id="messageIcon" class="shrink-0 mt-0.5"></div>
+        <div class="min-w-0">
+          <h2 id="messageTitle" class="text-sm sm:text-base font-bold"></h2>
+          <p id="messageBody" class="text-xs sm:text-sm mt-1 leading-relaxed"></p>
+        </div>
+      </div>
+    </section>
+ 
+    <!-- 検索結果セクション -->
+    <section id="resultSection" class="hidden space-y-4 animate-fade-up">
+      <!-- 結果サマリーバナー -->
+      <div class="bg-gradient-to-br from-verdy-700 via-verdy-600 to-verdy-800 text-white rounded-2xl shadow-md p-5 sm:p-6">
+        <div class="flex flex-wrap items-center gap-2 mb-2.5">
+          <span class="inline-flex items-center gap-1.5 bg-gold-500 text-verdy-950 font-extrabold text-xs sm:text-sm px-3 py-1 rounded-full shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span id="resultClicksBadge">0クリックで到達！</span>
+          </span>
+          <span id="resultModeBadge" class="inline-flex items-center gap-1 bg-white/20 border border-white/25 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+            連想モード
+          </span>
+          <span id="resultExcludeBadge" class="hidden inline-flex items-center gap-1 bg-white/15 border border-white/25 text-verdy-50 text-xs font-semibold px-2.5 py-1 rounded-full">
+            「AKB48」除外
+          </span>
+          <span class="inline-flex items-center gap-1 bg-black/20 text-verdy-100 text-xs font-medium px-2.5 py-1 rounded-full">
+            本文リンク限定
+          </span>
+        </div>
+ 
+        <h2 id="resultHeadline" class="text-lg sm:text-xl font-extrabold leading-snug break-words"></h2>
+        <p id="resultSubnote" class="hidden text-xs sm:text-sm text-verdy-100/90 mt-1.5"></p>
+        <p id="resultPathSummary" class="mt-3 text-sm font-semibold text-verdy-50 bg-black/15 rounded-xl px-3.5 py-2.5 leading-relaxed break-words"></p>
+ 
+        <!-- アクションボタン（白色コピーボタン & 黒色Xシェアボタン & 連想モード再試行ボタン） -->
+        <div class="mt-4 flex flex-wrap items-center gap-2.5">
+          <button type="button" id="copyResultBtn" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 active:scale-[0.99] text-slate-800 font-bold text-sm shadow-sm transition cursor-pointer">
+            <svg class="w-4 h-4 text-verdy-700" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            <span id="copyResultBtnLabel">結果をコピー</span>
+          </button>
+ 
+          <button type="button" id="shareXBtn" style="background-color: #0f1419;" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl hover:opacity-90 active:scale-[0.99] text-white font-bold text-sm shadow-sm border border-white/15 transition cursor-pointer">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+            </svg>
+            <span>結果をX(旧Twitter)にシェアする</span>
+          </button>
+ 
+          <button type="button" id="retryAssociationBtn" class="hidden inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-verdy-900/50 hover:bg-verdy-900/75 border border-white/25 text-white font-bold text-sm transition cursor-pointer">
+            <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span>別の連想を試す</span>
+          </button>
+        </div>
+      </div>
+ 
+      <!-- 別ルート切り替えタブ（最短ルート検索で複数候補がある場合） -->
+      <div id="altRoutesBar" class="hidden bg-white rounded-2xl border border-slate-200/80 p-3.5 flex flex-wrap items-center gap-2">
+        <span class="text-xs font-bold text-slate-500 mr-1">同じクリック数の別ルート：</span>
+        <div id="altRoutesButtons" class="flex flex-wrap gap-2"></div>
+      </div>
+ 
+      <!-- ルート詳細カード一覧 -->
+      <div id="routeCardsContainer" class="space-y-2"></div>
+    </section>
+ 
+    <!-- 検索履歴セクション -->
+    <section id="historySection" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-6">
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <h2 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+          <svg class="w-4 h-4 text-verdy-600" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span>最近の検索履歴</span>
+        </h2>
+        <button type="button" id="clearHistoryBtn" class="text-xs font-semibold text-slate-400 hover:text-rose-600 px-2 py-1 rounded-lg hover:bg-rose-50 transition cursor-pointer">
+          履歴をクリア
+        </button>
+      </div>
+      <div id="historyList" class="divide-y divide-slate-100"></div>
+    </section>
+ 
+    <!-- 検索の仕組み（折りたたみ） -->
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+      <details class="group">
+        <summary class="flex items-center justify-between gap-2 px-4 sm:px-6 py-4 cursor-pointer list-none select-none hover:bg-slate-50 transition">
+          <span class="text-sm font-bold text-slate-700 flex items-center gap-2">
+            <svg class="w-4 h-4 text-verdy-600" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+            <span>検索の仕組み・ルールについて</span>
+          </span>
+          <svg class="w-4 h-4 text-slate-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </summary>
+        <div class="px-4 sm:px-6 pb-5 pt-1 text-xs sm:text-sm text-slate-600 space-y-2.5 leading-relaxed border-t border-slate-100">
+          <p>
+            <strong>1. 連想モード（デフォルト・片方向）：</strong>
+            出発記事の冒頭〜本文前半にある特徴的なリンクから片方向で1手ずつたどり、連想ゲームのように寄り道しながらNMB48へ着地します。「別の連想を試す」で同じ単語から毎回違うルートを楽しめます。
+          </p>
+          <p>
+            <strong>2. 最短ルート検索（双方向リアルタイム検索）：</strong>
+            起動時に「NMB48」への被リンクと主要ハブ記事をキャッシュし、出発記事からの発リンクと両側から照合することで、最大4クリック以内の最短ルートを検索します。
+          </p>
+          <p>
+            <strong>3. 本文リンク限定（脚注・折りたたみ一覧表を常時除外）：</strong>
+            WikipediaのHTML構造を解析し、「脚注」「注釈」「出典」「参考文献」セクションや、記事下部の折りたたみ一覧表（ナビゲーションボックス／テンプレート）に含まれるリンクはすべて除外した上で、本文中のリンクだけでつながる経路を検証しています。
+          </p>
+          <p>
+            <strong>4. 「「AKB48」を除外」設定：</strong>
+            デフォルトでONになっており、中継地点として「AKB48」「AKB48グループ」を経由しない、より意外性のあるルートを検索します。オフにすると「AKB48」経由も含めて検索できます。
+          </p>
+        </div>
+      </details>
+    </section>
+  </main>
+ 
+  <!-- フッター -->
+  <footer class="mt-auto py-6 text-center text-xs text-slate-400 px-4">
+    <p>
+      データ提供：<a href="https://ja.wikipedia.org/" target="_blank" rel="noopener noreferrer" class="underline hover:text-verdy-600 transition">日本語版Wikipedia</a>（CC BY-SA 4.0）
+    </p>
+  </footer>
+ 
+  <!-- トースト通知 -->
+  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden items-center gap-2 bg-slate-900 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-full shadow-lg" role="status" aria-live="polite">
+    <span id="toastText"></span>
+  </div>
+ 
+  <script>
+    // =========================================================================
+    // 設定・定数
+    // =========================================================================
+ 
+    // 公開URLを固定したい場合はここに設定（空欄でも公開サーバー上では自動取得します）
+    const PUBLIC_URL = '';
+ 
+    const WIKI_API = 'https://ja.wikipedia.org/w/api.php';
+    const GOAL_QUERY_TITLE = 'NMB48';
+    const HISTORY_STORAGE_KEY = 'nmb48_wiki_route_history_v1';
+ 
+    const PRESET_KEYWORDS = [
+      'たこ焼き',
+      'ピカチュウ',
+      'ブラックホール',
+      '通天閣',
+      'カレーライス',
+      '相対性理論',
+      '富士山',
+      '吉本新喜劇'
+    ];
+ 
+    // 「「AKB48」を除外」ON時に中継から除外するタイトル
+    const EXCLUDED_TOKYO_TITLES = new Set(['AKB48', 'AKB48グループ']);
+ 
+    // 連想モードの序盤（1〜2手目）で即ワープを避けたい超一般語（連想ゲーム感を高めるため）
+    const GENERIC_EARLY_HUBS = new Set([
+      '日本', '世界', '地球', '人間', '歴史', '社会', '文化', '言語', '英語', '日本語',
+      'アメリカ合衆国', 'ヨーロッパ', 'アジア', '中国', '中華人民共和国', '大阪府', '大阪市', 'AKB48', 'AKB48グループ',
+      '20世紀', '21世紀', '19世紀', '平成', '昭和', '令和', '明治', '大正',
+      'テレビ', '映画', '音楽', 'スポーツ', '科学', '経済', '政治', '秋元康', '吉本興業'
+    ]);
+ 
+    // 日本語版Wikipediaの主要ハブ記事候補（ゴールへの直接リンク有無を起動時にAPI検証する・50件以内）
+    const SUPER_HUB_CANDIDATES = [
+      'AKB48', 'AKB48グループ', 'SKE48', 'HKT48', 'NGT48', 'STU48', 'SDN48', 'JKT48',
+      '乃木坂46', '秋元康', '吉本興業', '大阪府', '大阪市', '難波', '中央区 (大阪市)',
+      '近畿地方', '関西', '日本', 'アイドル', '日本のアイドル', 'アイドルグループ', '女性アイドルグループ',
+      'J-POP', '音楽', 'テレビ', 'NHK紅白歌合戦', '毎日放送', '朝日放送テレビ', '関西テレビ放送',
+      '読売テレビ放送', 'テレビ大阪', 'AKB48選抜総選挙', '握手会', '大阪城ホール', '京セラドーム大阪',
+      '2010年', '2011年', '山本彩', '渡辺美優紀', '吉田朱里', '白間美瑠', '山田菜々',
+      '須藤凜々花', '渋谷凪咲', 'オリコン', 'よしもとクリエイティブ・エージェンシー', '吉本新喜劇', 'TIF'
+    ];
+ 
+    // 3〜4クリック検索および連想モードの収束時に優先したい中継ハブ記事
+    const PRIORITY_BRIDGE_HUBS = new Set([
+      '日本', 'アイドル', '日本のアイドル', 'アイドルグループ', '女性アイドルグループ', 'J-POP', '音楽',
+      'テレビ', '映画', 'アニメ', '歌手', '関西', '近畿地方', '大阪府', '大阪市', '難波',
+      '吉本興業', '秋元康', 'AKB48', 'AKB48グループ', 'SKE48', 'HKT48', '乃木坂46',
+      'NHK', 'NHK紅白歌合戦', '毎日放送', '朝日放送テレビ', '関西テレビ放送', '読売テレビ放送', 'テレビ大阪',
+      'オリコン', '2010年', '2011年', '20世紀', '21世紀', '平成', '令和', 'お笑い', '漫才'
+    ]);
+ 
+    // 本文解析時に丸ごと除外するセクション見出し（脚注・出典系）
+    const EXCLUDED_SECTION_HEADINGS = new Set([
+      '脚注', '注釈', '出典', '参考文献', '参照', '註', '注', '典拠', '脚注・出典', '注釈・出典'
+    ]);
+ 
+    // =========================================================================
+    // アプリ状態管理
+    // =========================================================================
+    const state = {
+      searchMode: 'association',         // 'association'（連想モード・デフォルト） | 'shortest'（最短ルート検索）
+      canonicalGoal: GOAL_QUERY_TITLE,
+      goalAliases: new Set(['NMB48']),
+      goalBacklinks: new Set(),          // 1クリックでゴールへ到達できる候補記事群
+      verifiedDirectHubs: new Set(),     // 主要ハブのうちゴールへリンクしている記事
+      outgoingLinksCache: new Map(),     // articleTitle -> string[]（発リンク取得結果キャッシュ）
+      cleanLinksCache: new Map(),        // articleTitle -> Set<string>（脚注・一覧表除外済みの本文リンク・出現順保持）
+      verifiedGoalSources: new Set(),    // 本文リンクから直接ゴールへ到達できると検証済みの記事
+      rejectedGoalSources: new Set(),    // ゴールへのリンクが脚注・一覧表のみと判明した記事
+      articleInfoCache: new Map(),       // articleTitle -> { title, extract, thumbnail, url }
+      usedAssociationFirstHops: new Map(), // startTitle -> Set<string>（「別の連想を試す」で重複分岐を避ける）
+      cacheReady: false,
+      cachePromise: null,
+      isSearching: false,
+      abortController: null,
+      excludeTokyo: true,                // デフォルトON
+      searchStartTime: 0,
+      elapsedTimer: null,
+      apiCalls: 0,
+      scannedCount: 0,
+      currentResult: null,               // { mode, startTitle, note, excludeTokyo, routes: string[][], selectedIndex: number }
+      history: [],
+      suggestTimer: null,
+      suggestActiveIndex: -1,
+      suggestItems: []
+    };
+ 
+    let copyLabelTimer = null;
+    let toastTimer = null;
+ 
+    // =========================================================================
+    // DOM参照
+    // =========================================================================
+    const el = {
+      cacheStatusDot: document.getElementById('cacheStatusDot'),
+      cacheStatusText: document.getElementById('cacheStatusText'),
+      searchForm: document.getElementById('searchForm'),
+      modeAssociationBtn: document.getElementById('modeAssociationBtn'),
+      modeAssociationSub: document.getElementById('modeAssociationSub'),
+      modeShortestBtn: document.getElementById('modeShortestBtn'),
+      modeShortestSub: document.getElementById('modeShortestSub'),
+      modeDescription: document.getElementById('modeDescription'),
+      startInput: document.getElementById('startInput'),
+      clearInputBtn: document.getElementById('clearInputBtn'),
+      suggestList: document.getElementById('suggestList'),
+      searchBtn: document.getElementById('searchBtn'),
+      searchBtnLabel: document.getElementById('searchBtnLabel'),
+      excludeTokyoBtn: document.getElementById('excludeTokyoBtn'),
+      excludeTokyoTrack: document.getElementById('excludeTokyoTrack'),
+      excludeTokyoKnob: document.getElementById('excludeTokyoKnob'),
+      randomBtn: document.getElementById('randomBtn'),
+      presetContainer: document.getElementById('presetContainer'),
+      progressPanel: document.getElementById('progressPanel'),
+      progressPhase: document.getElementById('progressPhase'),
+      progressElapsed: document.getElementById('progressElapsed'),
+      progressText: document.getElementById('progressText'),
+      liveChainWrap: document.getElementById('liveChainWrap'),
+      liveChainNodes: document.getElementById('liveChainNodes'),
+      metricApiCalls: document.getElementById('metricApiCalls'),
+      metricScanned: document.getElementById('metricScanned'),
+      cancelBtn: document.getElementById('cancelBtn'),
+      messageBox: document.getElementById('messageBox'),
+      messageIcon: document.getElementById('messageIcon'),
+      messageTitle: document.getElementById('messageTitle'),
+      messageBody: document.getElementById('messageBody'),
+      resultSection: document.getElementById('resultSection'),
+      resultClicksBadge: document.getElementById('resultClicksBadge'),
+      resultModeBadge: document.getElementById('resultModeBadge'),
+      resultExcludeBadge: document.getElementById('resultExcludeBadge'),
+      resultHeadline: document.getElementById('resultHeadline'),
+      resultSubnote: document.getElementById('resultSubnote'),
+      resultPathSummary: document.getElementById('resultPathSummary'),
+      copyResultBtn: document.getElementById('copyResultBtn'),
+      copyResultBtnLabel: document.getElementById('copyResultBtnLabel'),
+      shareXBtn: document.getElementById('shareXBtn'),
+      retryAssociationBtn: document.getElementById('retryAssociationBtn'),
+      altRoutesBar: document.getElementById('altRoutesBar'),
+      altRoutesButtons: document.getElementById('altRoutesButtons'),
+      routeCardsContainer: document.getElementById('routeCardsContainer'),
+      historySection: document.getElementById('historySection'),
+      historyList: document.getElementById('historyList'),
+      clearHistoryBtn: document.getElementById('clearHistoryBtn'),
+      toast: document.getElementById('toast'),
+      toastText: document.getElementById('toastText')
+    };
+ 
+    // =========================================================================
+    // 共通ユーティリティ
+    // =========================================================================
+ 
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+ 
+    function normalizeTitle(title) {
+      return String(title || '').replace(/_/g, ' ').trim();
+    }
+ 
+    function isGoalTitle(title) {
+      return state.goalAliases.has(normalizeTitle(title));
+    }
+ 
+    function isExcludedIntermediate(title, excludeTokyo) {
+      if (!excludeTokyo) return false;
+      return EXCLUDED_TOKYO_TITLES.has(normalizeTitle(title));
+    }
+ 
+    function isDateOrListTitle(title) {
+      return /^(\d+年|\d+月\d+日|\d+年代|一覧|Category:|\d+世紀)/.test(title) || /の一覧$/.test(title);
+    }
+ 
+    function wikiArticleUrl(title) {
+      return `https://ja.wikipedia.org/wiki/${encodeURIComponent(String(title).replace(/ /g, '_'))}`;
+    }
+ 
+    function pickWeightedRandom(items, topLimit = 6) {
+      if (!items || items.length === 0) return null;
+      const pool = items.slice(0, Math.min(topLimit, items.length));
+      // 先頭ほど選ばれやすい重み付き抽選
+      const weights = pool.map((_, idx) => Math.max(1, pool.length - idx));
+      const total = weights.reduce((a, b) => a + b, 0);
+      let r = Math.random() * total;
+      for (let i = 0; i < pool.length; i++) {
+        r -= weights[i];
+        if (r <= 0) return pool[i];
+      }
+      return pool[0];
+    }
+ 
+    /**
+     * 公開URLを取得（手動設定を優先し、空欄時は公開ホスト上なら自動取得）
+     */
+    function getPublicUrl() {
+      const manual = (PUBLIC_URL || '').trim();
+      if (manual) return manual;
+      try {
+        const loc = window.location;
+        if (!loc || (loc.protocol !== 'http:' && loc.protocol !== 'https:')) return '';
+        const host = loc.hostname || '';
+        if (
+          !host ||
+          host === 'localhost' ||
+          host === '127.0.0.1' ||
+          host.endsWith('.local') ||
+          host.includes('googleusercontent.com') ||
+          host.includes('webcontainer')
+        ) {
+          return '';
+        }
+        return `${loc.origin}${loc.pathname}`;
+      } catch {
+        return '';
+      }
+    }
+ 
+    function showToast(text) {
+      el.toastText.textContent = text;
+      el.toast.classList.remove('hidden');
+      el.toast.classList.add('inline-flex');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.toast.classList.add('hidden');
+        el.toast.classList.remove('inline-flex');
+      }, 2400);
+    }
+ 
+    function showMessage(type, title, body) {
+      const styles = {
+        error: {
+          wrap: 'bg-rose-50 border-rose-200 text-rose-900',
+          icon: '<svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86l-7.1 12.28A2 2 0 004.92 19h14.16a2 2 0 001.73-2.86l-7.1-12.28a2 2 0 00-3.42 0z"/></svg>'
+        },
+        warning: {
+          wrap: 'bg-amber-50 border-amber-200 text-amber-900',
+          icon: '<svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+        },
+        info: {
+          wrap: 'bg-sky-50 border-sky-200 text-sky-900',
+          icon: '<svg class="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+        }
+      };
+      const style = styles[type] || styles.info;
+      el.messageBox.className = `rounded-2xl border p-4 sm:p-5 animate-fade-up ${style.wrap}`;
+      el.messageIcon.innerHTML = style.icon;
+      el.messageTitle.textContent = title;
+      el.messageBody.textContent = body;
+      el.messageBox.classList.remove('hidden');
+    }
+ 
+    function hideMessage() {
+      el.messageBox.classList.add('hidden');
+    }
+ 
+    /**
+     * 並列数制限つき非同期マップ実行ユーティリティ
+     */
+    async function runWithConcurrency(items, concurrency, worker, signal) {
+      const results = new Array(items.length);
+      let nextIdx = 0;
+ 
+      const runner = async () => {
+        while (nextIdx < items.length) {
+          if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+          const idx = nextIdx++;
+          results[idx] = await worker(items[idx], idx);
+        }
+      };
+ 
+      const workers = [];
+      const count = Math.min(concurrency, items.length);
+      for (let i = 0; i < count; i++) {
+        workers.push(runner());
+      }
+      await Promise.all(workers);
+      return results;
+    }
+ 
+    // =========================================================================
+    // Wikipedia API 通信 & 本文リンク抽出エンジン（脚注・折りたたみ一覧表を常時除外）
+    // =========================================================================
+ 
+    // グローバルAPIレート制御（HTTP 429回避のため直列実行＆動的な送信間隔制御）
+    const apiLimiter = {
+      active: 0,
+      maxConcurrent: 1,
+      baseMinIntervalMs: 300,
+      minIntervalMs: 300,
+      lastRequestTime: 0,
+      queue: []
+    };
+ 
+    function abortableSleep(ms, signal) {
+      return new Promise((resolve, reject) => {
+        if (signal?.aborted) {
+          reject(new DOMException('Aborted', 'AbortError'));
+          return;
+        }
+        const onAbort = () => {
+          clearTimeout(timer);
+          reject(new DOMException('Aborted', 'AbortError'));
+        };
+        const timer = setTimeout(() => {
+          if (signal) signal.removeEventListener('abort', onAbort);
+          resolve();
+        }, ms);
+        if (signal) {
+          signal.addEventListener('abort', onAbort, { once: true });
+        }
+      });
+    }
+ 
+    function acquireApiSlot(signal) {
+      return new Promise((resolve, reject) => {
+        if (signal?.aborted) {
+          reject(new DOMException('Aborted', 'AbortError'));
+          return;
+        }
+ 
+        const entry = { resolve, reject, signal, onAbort: null, run: null };
+ 
+        const tryRun = () => {
+          if (entry.signal && entry.onAbort) {
+            entry.signal.removeEventListener('abort', entry.onAbort);
+          }
+          apiLimiter.active += 1;
+          const now = Date.now();
+          const waitMs = Math.max(0, apiLimiter.minIntervalMs - (now - apiLimiter.lastRequestTime));
+          apiLimiter.lastRequestTime = now + waitMs;
+ 
+          if (waitMs > 0) {
+            abortableSleep(waitMs, signal)
+              .then(() => resolve())
+              .catch((err) => {
+                releaseApiSlot();
+                reject(err);
+              });
+          } else {
+            resolve();
+          }
+        };
+ 
+        if (signal) {
+          entry.onAbort = () => {
+            const idx = apiLimiter.queue.indexOf(entry);
+            if (idx !== -1) apiLimiter.queue.splice(idx, 1);
+            reject(new DOMException('Aborted', 'AbortError'));
+          };
+          signal.addEventListener('abort', entry.onAbort, { once: true });
+        }
+ 
+        if (apiLimiter.active < apiLimiter.maxConcurrent && apiLimiter.queue.length === 0) {
+          tryRun();
+        } else {
+          entry.run = tryRun;
+          apiLimiter.queue.push(entry);
+        }
+      });
+    }
+ 
+    function releaseApiSlot() {
+      apiLimiter.active = Math.max(0, apiLimiter.active - 1);
+      while (apiLimiter.active < apiLimiter.maxConcurrent && apiLimiter.queue.length > 0) {
+        const nextEntry = apiLimiter.queue.shift();
+        if (nextEntry.signal?.aborted) continue;
+        nextEntry.run();
+      }
+    }
+ 
+    /**
+     * MediaWiki API へCORS対応リクエストを送信（レート制御 & HTTP 429/503 自動バックオフ再試行付き）
+     */
+    async function wikiFetch(params, signal, countMetric = true) {
+      const url = new URL(WIKI_API);
+      const merged = {
+        format: 'json',
+        formatversion: '2',
+        origin: '*',
+        ...params
+      };
+      for (const [k, v] of Object.entries(merged)) {
+        if (v !== undefined && v !== null) {
+          url.searchParams.set(k, String(v));
+        }
+      }
+ 
+      const maxRetries = 3;
+      let lastStatus = 0;
+ 
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        await acquireApiSlot(signal);
+        let res;
+        try {
+          if (countMetric && state.isSearching && attempt === 0) {
+            state.apiCalls += 1;
+            el.metricApiCalls.textContent = `${state.apiCalls}回`;
+          }
+          res = await fetch(url.toString(), { signal });
+        } finally {
+          releaseApiSlot();
+        }
+ 
+        lastStatus = res.status;
+ 
+        if (res.status === 429 || res.status === 503) {
+          if (attempt < maxRetries) {
+            const retryAfterSec = parseInt(res.headers.get('Retry-After') || '', 10);
+            const baseDelay = Number.isFinite(retryAfterSec) && retryAfterSec > 0
+              ? retryAfterSec * 1000
+              : 2000 * Math.pow(2, attempt) + Math.floor(Math.random() * 500);
+            const delayMs = Math.min(baseDelay, 10000);
+ 
+            // レート制限を検知したら以降の送信間隔も自動で緩める
+            apiLimiter.minIntervalMs = Math.min(1200, Math.max(apiLimiter.minIntervalMs * 1.5, 600));
+            apiLimiter.lastRequestTime = Math.max(apiLimiter.lastRequestTime, Date.now() + delayMs);
+ 
+            if (state.isSearching) {
+              updateProgress(
+                `Wikipediaのアクセス制限を回避するため待機中...（自動再試行 ${attempt + 1}/${maxRetries}）`,
+                null
+              );
+            }
+            await abortableSleep(delayMs, signal);
+            continue;
+          }
+ 
+          const rateErr = new Error(`Wikipedia API通信エラー (HTTP ${res.status})`);
+          rateErr.isRateLimit = true;
+          throw rateErr;
+        }
+ 
+        if (!res.ok) {
+          throw new Error(`Wikipedia API通信エラー (HTTP ${res.status})`);
+        }
+ 
+        const data = await res.json();
+        if (data && data.error) {
+          throw new Error(data.error.info || 'Wikipedia APIエラー');
+        }
+ 
+        // 正常応答が続けば送信間隔を徐々に基準値へ戻す
+        if (apiLimiter.minIntervalMs > apiLimiter.baseMinIntervalMs) {
+          apiLimiter.minIntervalMs = Math.max(apiLimiter.baseMinIntervalMs, Math.floor(apiLimiter.minIntervalMs * 0.85));
+        }
+ 
+        return data;
+      }
+ 
+      const fallbackErr = new Error(`Wikipedia API通信エラー (HTTP ${lastStatus || 429})`);
+      fallbackErr.isRateLimit = true;
+      throw fallbackErr;
+    }
+ 
+    /**
+     * Wikitext内の指定パターンのテンプレート（脚注・出典・ナビゲーション等）をネスト対応で除去
+     */
+    function stripTemplatesByPattern(wikitext, nameRegex) {
+      let out = '';
+      let i = 0;
+      const len = wikitext.length;
+ 
+      while (i < len) {
+        if (wikitext[i] === '{' && wikitext[i + 1] === '{') {
+          let depth = 1;
+          let j = i + 2;
+          while (j < len && depth > 0) {
+            if (wikitext[j] === '{' && wikitext[j + 1] === '{') {
+              depth += 1;
+              j += 2;
+            } else if (wikitext[j] === '}' && wikitext[j + 1] === '}') {
+              depth -= 1;
+              j += 2;
+            } else {
+              j += 1;
+            }
+          }
+          const inner = wikitext.slice(i + 2, depth === 0 ? j - 2 : j);
+          const tplName = inner.split(/[|\n]/)[0].trim();
+          if (nameRegex.test(tplName)) {
+            i = j;
+            continue;
+          }
+          // 対象外テンプレート（基礎情報など）は中身を残しつつ内部の不要テンプレートも再帰的に除去
+          out += '{{' + stripTemplatesByPattern(inner, nameRegex) + (depth === 0 ? '}}' : '');
+          i = j;
+        } else {
+          out += wikitext[i];
+          i += 1;
+        }
+      }
+      return out;
+    }
+ 
+    /**
+     * Wikitext内のInfobox以外の折りたたみテーブル（mw-collapsible / collapsible）を除去
+     */
+    function stripCollapsibleTables(wikitext) {
+      let out = '';
+      let i = 0;
+      const len = wikitext.length;
+ 
+      while (i < len) {
+        if (wikitext[i] === '{' && wikitext[i + 1] === '|') {
+          let depth = 1;
+          let j = i + 2;
+          while (j < len && depth > 0) {
+            if (wikitext[j] === '{' && wikitext[j + 1] === '|') {
+              depth += 1;
+              j += 2;
+            } else if (wikitext[j] === '|' && wikitext[j + 1] === '}') {
+              depth -= 1;
+              j += 2;
+            } else {
+              j += 1;
+            }
+          }
+          const block = wikitext.slice(i, j);
+          const firstLine = block.split('\n')[0] || '';
+          const isCollapsible = /\b(mw-collapsible|collapsible)\b/i.test(firstLine);
+          const isInfobox = /\binfobox\b/i.test(firstLine);
+          if (isCollapsible && !isInfobox) {
+            i = j;
+            continue;
+          }
+          out += block;
+          i = j;
+        } else {
+          out += wikitext[i];
+          i += 1;
+        }
+      }
+      return out;
+    }
+ 
+    /**
+     * Wikitextから脚注（<ref>および脚注・出典セクション）と折りたたみ一覧表・テンプレートを除外し、
+     * 本文中の標準名前空間リンクのみを出現順に抽出する
+     * ※Wikitextでは記事下部のナビゲーションボックステンプレート（{{...}}）が展開されないため自動で除外される
+     */
+    function extractCleanBodyLinksFromWikitext(wikitext, selfTitle) {
+      if (!wikitext) return new Set();
+ 
+      let text = String(wikitext);
+ 
+      // 1. HTMLコメント・nowiki/math/コードブロック・インライン脚注（<ref>）を除去
+      text = text.replace(/<!--[\s\S]*?-->/g, '');
+      text = text.replace(/<(nowiki|math|syntaxhighlight|source|timeline)\b[^>]*>[\s\S]*?<\/\1>/gi, '');
+      text = text.replace(/<ref\b[^>]*>[\s\S]*?<\/ref>/gi, '');
+      text = text.replace(/<ref\b[^>]*\/\s*>/gi, '');
+ 
+      // 2. 「脚注」「注釈」「出典」「参考文献」などの見出し配下セクションを丸ごと除去
+      const lines = text.split('\n');
+      const keptLines = [];
+      let removingDepth = 0;
+ 
+      for (const line of lines) {
+        const headingMatch = line.match(/^(={2,6})\s*(.+?)\s*\1\s*$/);
+        if (headingMatch) {
+          const level = headingMatch[1].length;
+          const headlineText = headingMatch[2]
+            .replace(/'''?/g, '')
+            .replace(/<[^>]+>/g, '')
+            .trim();
+ 
+          if (removingDepth > 0 && level <= removingDepth) {
+            removingDepth = 0;
+          }
+          if (EXCLUDED_SECTION_HEADINGS.has(headlineText)) {
+            removingDepth = level;
+            continue;
+          }
+        }
+        if (removingDepth === 0) {
+          keptLines.push(line);
+        }
+      }
+      text = keptLines.join('\n');
+ 
+      // 3. 折りたたみブロック（Collapse top / Hidden begin 等）および脚注・ナビ系テンプレートを除去
+      text = text.replace(
+        /\{\{\s*(?:Collapse top|Collapsed top|Hidden begin|Refbegin)\b[\s\S]*?\{\{\s*(?:Collapse bottom|Collapsed bottom|Hidden end|Refend)\s*\}\}/gi,
+        ''
+      );
+      text = stripTemplatesByPattern(
+        text,
+        /^(?:cite\b|citation\b|sfn|harv|efn|refn|reflist|notelist|navbox|hidden|authority\s*control|normdaten|portal|sister|commonscat|wikisource|wikiquote|wiktionary|wikibooks|wikinews|stub$|.*-stub$|脚注ヘルプ)/i
+      );
+ 
+      // 4. Infobox以外の折りたたみテーブルを除去
+      text = stripCollapsibleTables(text);
+ 
+      // 5. 本文に残った内部リンク [[リンク先|表示名]] を出現順に抽出
+      const links = new Set();
+      const selfNorm = normalizeTitle(selfTitle);
+      const linkRegex = /\[\[([^\[\]\n]+)\]\]/g;
+      let match;
+ 
+      while ((match = linkRegex.exec(text)) !== null) {
+        let target = match[1].split('|')[0].split('#')[0].trim();
+        if (!target) continue;
+        if (target.startsWith(':')) target = target.slice(1).trim();
+ 
+        try {
+          if (target.includes('%')) target = decodeURIComponent(target);
+        } catch {
+          // デコード失敗時はそのまま使用
+        }
+ 
+        let title = normalizeTitle(target);
+        if (!title) continue;
+ 
+        // 名前空間プレフィックスおよび他言語版リンク（小文字の en: 等）を除外
+        if (
+          /^(Wikipedia|WP|Category|Template|File|Image|Portal|Help|Special|Module|MediaWiki|User|Talk|Draft|Book|TimedText|プロジェクト|カテゴリ|テンプレート|ファイル|画像|ポータル|ヘルプ|特別|モジュール|利用者|ノート|議論|wikt|wiktionary|wikisource|wikiquote|wikibooks|wikinews|wikiversity|wikivoyage|commons|meta|species):/i.test(title) ||
+          /^[a-z]{2,3}(?:-[a-z0-9]+)?:/.test(title)
+        ) {
+          continue;
+        }
+ 
+        // MediaWiki仕様に合わせて先頭のASCII小文字を大文字化
+        if (/^[a-z]/.test(title)) {
+          title = title[0].toUpperCase() + title.slice(1);
+        }
+ 
+        if (title === selfNorm) continue;
+        links.add(title);
+      }
+ 
+      return links;
+    }
+ 
+    /**
+     * 複数記事の「本文リンク（脚注・折りたたみ一覧表を除外）」をWikitext一括取得（action=query）で高速取得
+     * ※action=parse を使わず5記事ずつまとめて取得することで HTTP 429 を大幅に回避する
+     */
+    async function batchGetCleanBodyLinks(titles, signal) {
+      const resultMap = new Map();
+      if (!titles || titles.length === 0) return resultMap;
+ 
+      const uncached = [];
+      const seenUncached = new Set();
+ 
+      for (const raw of titles) {
+        const key = normalizeTitle(raw);
+        if (!key) continue;
+        if (state.cleanLinksCache.has(key)) {
+          resultMap.set(key, state.cleanLinksCache.get(key));
+        } else if (!seenUncached.has(key)) {
+          seenUncached.add(key);
+          uncached.push(key);
+        }
+      }
+ 
+      const fetchChunk = async (chunk) => {
+        if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+        const chunkSet = new Set(chunk);
+ 
+        const data = await wikiFetch(
+          {
+            action: 'query',
+            titles: chunk.join('|'),
+            prop: 'revisions',
+            rvprop: 'content',
+            rvslots: 'main',
+            redirects: '1'
+          },
+          signal
+        );
+ 
+        const reverseMap = new Map();
+        for (const n of data?.query?.normalized || []) {
+          const toKey = normalizeTitle(n.to);
+          const fromKey = normalizeTitle(n.from);
+          if (!reverseMap.has(toKey)) reverseMap.set(toKey, []);
+          reverseMap.get(toKey).push(fromKey);
+        }
+        for (const r of data?.query?.redirects || []) {
+          const fromKey = normalizeTitle(r.from);
+          const toKey = normalizeTitle(r.to);
+          const origs = reverseMap.get(fromKey) || [fromKey];
+          if (!reverseMap.has(toKey)) reverseMap.set(toKey, []);
+          reverseMap.get(toKey).push(...origs);
+        }
+ 
+        for (const page of data?.query?.pages || []) {
+          const pageTitle = normalizeTitle(page.title);
+          const rev = page.revisions?.[0];
+          const hasContent = Boolean(rev && (rev.slots?.main?.content !== undefined || rev.content !== undefined));
+ 
+          // レスポンスサイズ上限等でrevisionsが返らなかった記事は後続の個別フォールバックへ回す
+          if (!page.missing && !page.invalid && !hasContent) {
+            continue;
+          }
+ 
+          const wikitext = rev?.slots?.main?.content ?? rev?.content ?? '';
+          const cleanSet = (page.missing || page.invalid)
+            ? new Set()
+            : extractCleanBodyLinksFromWikitext(wikitext, pageTitle);
+ 
+          const keys = new Set(reverseMap.get(pageTitle) || []);
+          if (chunkSet.has(pageTitle) || keys.size === 0) {
+            keys.add(pageTitle);
+          }
+ 
+          state.cleanLinksCache.set(pageTitle, cleanSet);
+          for (const k of keys) {
+            state.cleanLinksCache.set(k, cleanSet);
+            resultMap.set(k, cleanSet);
+          }
+ 
+          state.scannedCount += cleanSet.size;
+        }
+        el.metricScanned.textContent = `${state.scannedCount.toLocaleString()}件`;
+      };
+ 
+      // 5記事ずつ一括取得（action=query のため非常に軽量）
+      const chunkSize = 5;
+      for (let i = 0; i < uncached.length; i += chunkSize) {
+        const chunk = uncached.slice(i, i + chunkSize);
+        await fetchChunk(chunk);
+ 
+        // 長大な記事などで一括取得から漏れたタイトルがあれば個別補完
+        for (const key of chunk) {
+          if (!state.cleanLinksCache.has(key)) {
+            await fetchChunk([key]);
+            if (!state.cleanLinksCache.has(key)) {
+              const empty = new Set();
+              state.cleanLinksCache.set(key, empty);
+              resultMap.set(key, empty);
+            }
+          }
+        }
+      }
+ 
+      return resultMap;
+    }
+ 
+    /**
+     * 指定記事の「本文リンク（脚注・折りたたみ一覧表を除外）」を取得（キャッシュ付き・出現順保持）
+     */
+    async function getCleanBodyLinks(title, signal) {
+      const key = normalizeTitle(title);
+      if (state.cleanLinksCache.has(key)) {
+        return state.cleanLinksCache.get(key);
+      }
+      const map = await batchGetCleanBodyLinks([key], signal);
+      return map.get(key) || new Set();
+    }
+ 
+    /**
+     * 複数候補記事が「本文リンク」から直接ゴール記事へリンクしているかを一括裏取り検証
+     */
+    async function batchVerifyCleanLinksToGoal(titles, signal) {
+      const toFetch = [];
+      for (const t of titles) {
+        const key = normalizeTitle(t);
+        if (!state.verifiedGoalSources.has(key) && !state.rejectedGoalSources.has(key)) {
+          toFetch.push(key);
+        }
+      }
+ 
+      if (toFetch.length > 0) {
+        const cleanMap = await batchGetCleanBodyLinks(toFetch, signal);
+        for (const key of toFetch) {
+          const cleanLinks = cleanMap.get(key) || new Set();
+          let ok = false;
+          for (const alias of state.goalAliases) {
+            if (cleanLinks.has(alias)) {
+              ok = true;
+              break;
+            }
+          }
+          if (ok) {
+            state.verifiedGoalSources.add(key);
+          } else {
+            state.rejectedGoalSources.add(key);
+          }
+        }
+      }
+ 
+      const verified = [];
+      for (const t of titles) {
+        const key = normalizeTitle(t);
+        if (state.verifiedGoalSources.has(key)) {
+          verified.push(t);
+        }
+      }
+      return verified;
+    }
+ 
+    /**
+     * 指定記事が「本文リンク」から直接ゴール記事へリンクしているかを裏取り検証
+     */
+    async function verifyCleanLinkToGoal(title, signal) {
+      const key = normalizeTitle(title);
+      if (state.verifiedGoalSources.has(key)) return true;
+      if (state.rejectedGoalSources.has(key)) return false;
+ 
+      try {
+        const okList = await batchVerifyCleanLinksToGoal([key], signal);
+        return okList.length > 0;
+      } catch (err) {
+        if (err.name === 'AbortError' || err.isRateLimit) throw err;
+        return false;
+      }
+    }
+ 
+    /**
+     * 複数記事（最大50件ずつ）から特定のターゲット記事群（最大50件ずつ）への
+     * リンク有無を pltitles で1〜数回のAPIリクエストに圧縮して一括照合する
+     */
+    async function batchCheckLinksToTargets(sourceTitles, targetTitles, signal) {
+      const resultMap = new Map();
+      if (!sourceTitles || sourceTitles.length === 0 || !targetTitles || targetTitles.length === 0) {
+        return resultMap;
+      }
+ 
+      const srcChunkSize = 50;
+      const tgtChunkSize = 50;
+ 
+      for (let i = 0; i < sourceTitles.length; i += srcChunkSize) {
+        const srcChunk = sourceTitles.slice(i, i + srcChunkSize);
+        const srcSet = new Set(srcChunk);
+ 
+        for (let j = 0; j < targetTitles.length; j += tgtChunkSize) {
+          if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+          const tgtChunk = targetTitles.slice(j, j + tgtChunkSize);
+ 
+          let plcontinue = null;
+          let rounds = 0;
+          do {
+            const params = {
+              action: 'query',
+              titles: srcChunk.join('|'),
+              prop: 'links',
+              pltitles: tgtChunk.join('|'),
+              pllimit: 'max',
+              redirects: '1'
+            };
+            if (plcontinue) params.plcontinue = plcontinue;
+ 
+            const data = await wikiFetch(params, signal);
+            const reverseMap = new Map();
+            for (const n of data?.query?.normalized || []) {
+              if (!reverseMap.has(n.to)) reverseMap.set(n.to, []);
+              reverseMap.get(n.to).push(n.from);
+            }
+            for (const r of data?.query?.redirects || []) {
+              const origs = reverseMap.get(r.from) || [r.from];
+              if (!reverseMap.has(r.to)) reverseMap.set(r.to, []);
+              reverseMap.get(r.to).push(...origs);
+            }
+ 
+            for (const page of data?.query?.pages || []) {
+              if (!page.links || page.links.length === 0) continue;
+              const keys = new Set(reverseMap.get(page.title) || []);
+              if (srcSet.has(page.title) || keys.size === 0) {
+                keys.add(page.title);
+              }
+              for (const k of keys) {
+                if (!resultMap.has(k)) resultMap.set(k, new Set());
+                const set = resultMap.get(k);
+                for (const link of page.links) {
+                  set.add(link.title);
+                }
+              }
+              state.scannedCount += page.links.length;
+            }
+            el.metricScanned.textContent = `${state.scannedCount.toLocaleString()}件`;
+ 
+            plcontinue = data?.continue?.plcontinue || null;
+            rounds += 1;
+          } while (plcontinue && rounds < 2);
+        }
+      }
+ 
+      const out = new Map();
+      for (const [k, set] of resultMap.entries()) {
+        out.set(k, Array.from(set));
+      }
+      return out;
+    }
+ 
+    /**
+     * 複数記事の発リンク（標準名前空間）を一括取得（キャッシュ対応・軽量チャンク）
+     */
+    async function batchFetchOutgoingLinks(titles, signal) {
+      const resultMap = new Map();
+      if (!titles || titles.length === 0) return resultMap;
+ 
+      const uncached = [];
+      for (const t of titles) {
+        if (state.outgoingLinksCache.has(t)) {
+          resultMap.set(t, state.outgoingLinksCache.get(t));
+        } else {
+          uncached.push(t);
+        }
+      }
+ 
+      const chunkSize = 10;
+      for (let i = 0; i < uncached.length; i += chunkSize) {
+        if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+        const chunk = uncached.slice(i, i + chunkSize);
+        const chunkSet = new Set(chunk);
+        const chunkAccum = new Map();
+        for (const t of chunk) chunkAccum.set(t, new Set());
+ 
+        let plcontinue = null;
+        let rounds = 0;
+        do {
+          const params = {
+            action: 'query',
+            titles: chunk.join('|'),
+            prop: 'links',
+            plnamespace: '0',
+            pllimit: 'max',
+            redirects: '1'
+          };
+          if (plcontinue) params.plcontinue = plcontinue;
+ 
+          const data = await wikiFetch(params, signal);
+          const pages = data?.query?.pages || [];
+          const reverseMap = new Map();
+          for (const n of data?.query?.normalized || []) {
+            if (!reverseMap.has(n.to)) reverseMap.set(n.to, []);
+            reverseMap.get(n.to).push(n.from);
+          }
+          for (const r of data?.query?.redirects || []) {
+            const origs = reverseMap.get(r.from) || [r.from];
+            if (!reverseMap.has(r.to)) reverseMap.set(r.to, []);
+            reverseMap.get(r.to).push(...origs);
+          }
+ 
+          for (const page of pages) {
+            if (!page.links) continue;
+            const keys = new Set(reverseMap.get(page.title) || []);
+            if (chunkSet.has(page.title) || keys.size === 0) {
+              keys.add(page.title);
+            }
+            for (const k of keys) {
+              if (!chunkAccum.has(k)) chunkAccum.set(k, new Set());
+              const set = chunkAccum.get(k);
+              for (const link of page.links) {
+                set.add(link.title);
+              }
+            }
+            state.scannedCount += page.links.length;
+          }
+          el.metricScanned.textContent = `${state.scannedCount.toLocaleString()}件`;
+ 
+          plcontinue = data?.continue?.plcontinue || null;
+          rounds += 1;
+        } while (plcontinue && rounds < 2);
+ 
+        for (const [k, set] of chunkAccum.entries()) {
+          const arr = Array.from(set);
+          state.outgoingLinksCache.set(k, arr);
+          resultMap.set(k, arr);
+        }
+      }
+ 
+      return resultMap;
+    }
+ 
+    /**
+     * 入力キーワードからWikipediaの正規記事名を解決（リダイレクト・あいまい検索対応）
+     */
+    async function resolveStartArticle(rawQuery, signal) {
+      const trimmed = rawQuery.trim();
+      const infoData = await wikiFetch(
+        {
+          action: 'query',
+          titles: trimmed,
+          redirects: '1'
+        },
+        signal
+      );
+ 
+      const page = (infoData?.query?.pages || [])[0];
+      if (page && !page.missing && !page.invalid) {
+        const redirectInfo = (infoData?.query?.redirects || [])[0];
+        const note = redirectInfo
+          ? `「${redirectInfo.from}」から「${page.title}」へリダイレクトされました。`
+          : '';
+        return { title: page.title, note };
+      }
+ 
+      // 完全一致しない場合はWikipedia内検索の上位1件へフォールバック
+      const searchData = await wikiFetch(
+        {
+          action: 'query',
+          list: 'search',
+          srsearch: trimmed,
+          srnamespace: '0',
+          srlimit: '1'
+        },
+        signal
+      );
+ 
+      const hit = (searchData?.query?.search || [])[0];
+      if (hit && hit.title) {
+        return {
+          title: hit.title,
+          note: `「${trimmed}」に一致する記事が見つからなかったため、最も近い記事「${hit.title}」から検索しました。`
+        };
+      }
+ 
+      return null;
+    }
+ 
+    /**
+     * 起動時のゴール情報・被リンク・主要ハブキャッシュの初期化
+     */
+    function initGoalCache() {
+      if (state.cachePromise) return state.cachePromise;
+ 
+      state.cachePromise = (async () => {
+        try {
+          el.cacheStatusText.textContent = 'ゴール情報を準備中...';
+ 
+          // 1. ゴール記事の正規タイトルとリダイレクト別名を取得
+          const goalInfo = await wikiFetch(
+            {
+              action: 'query',
+              titles: GOAL_QUERY_TITLE,
+              prop: 'redirects',
+              rdnamespace: '0',
+              rdlimit: '50',
+              redirects: '1'
+            },
+            null,
+            false
+          );
+ 
+          const goalPage = (goalInfo?.query?.pages || [])[0];
+          if (goalPage && goalPage.title) {
+            state.canonicalGoal = goalPage.title;
+            state.goalAliases.add(goalPage.title);
+            for (const rd of goalPage.redirects || []) {
+              if (rd.title) state.goalAliases.add(rd.title);
+            }
+          }
+ 
+          // 2. 主要ハブからのリンク有無と被リンク（最大1,000件）を順次取得（バースト通信を回避）
+          const fetchSuperHubChecks = async () => {
+            const targetTitles = Array.from(state.goalAliases).slice(0, 10).join('|');
+            const data = await wikiFetch(
+              {
+                action: 'query',
+                titles: SUPER_HUB_CANDIDATES.slice(0, 50).join('|'),
+                prop: 'links',
+                pltitles: targetTitles,
+                pllimit: 'max',
+                redirects: '1'
+              },
+              null,
+              false
+            );
+            for (const page of data?.query?.pages || []) {
+              if (page.links && page.links.length > 0 && !isGoalTitle(page.title)) {
+                state.verifiedDirectHubs.add(page.title);
+                state.goalBacklinks.add(page.title);
+              }
+            }
+          };
+ 
+          const fetchBacklinks = async () => {
+            let blcontinue = null;
+            for (let page = 0; page < 2; page++) {
+              const params = {
+                action: 'query',
+                list: 'backlinks',
+                bltitle: state.canonicalGoal,
+                blnamespace: '0',
+                bllimit: '500',
+                blfilterredir: 'nonredirects'
+              };
+              if (blcontinue) params.blcontinue = blcontinue;
+              const blData = await wikiFetch(params, null, false);
+              for (const item of blData?.query?.backlinks || []) {
+                if (item.title && !isGoalTitle(item.title)) {
+                  state.goalBacklinks.add(item.title);
+                }
+              }
+              blcontinue = blData?.continue?.blcontinue || null;
+              if (!blcontinue) break;
+            }
+          };
+ 
+          await fetchSuperHubChecks();
+          await fetchBacklinks();
+ 
+          state.cacheReady = true;
+          el.cacheStatusDot.className = 'w-2 h-2 rounded-full bg-emerald-300';
+          el.cacheStatusText.textContent = `準備完了（ゴール周辺 ${state.goalBacklinks.size.toLocaleString()}記事キャッシュ済）`;
+        } catch (err) {
+          console.error('ゴールキャッシュ初期化エラー:', err);
+          el.cacheStatusDot.className = 'w-2 h-2 rounded-full bg-amber-300';
+          el.cacheStatusText.textContent = 'オンライン検索モード（再試行可能）';
+          state.cachePromise = null;
+        }
+      })();
+ 
+      return state.cachePromise;
+    }
+ 
+    /**
+     * 中継候補の優先度ソート（最短ルート検索用）
+     */
+    function prioritizeCandidates(titles, excludeTokyo) {
+      const filtered = titles.filter((t) => !isExcludedIntermediate(t, excludeTokyo));
+      return filtered.sort((a, b) => {
+        const score = (t) => {
+          let s = 0;
+          if (state.verifiedDirectHubs.has(t)) s += 8;
+          if (PRIORITY_BRIDGE_HUBS.has(t)) s += 5;
+          if (isDateOrListTitle(t)) s -= 3;
+          return s;
+        };
+        return score(b) - score(a);
+      });
+    }
+ 
+    /**
+     * 候補リストの中から「本文リンクでゴールに到達する記事」を一括取得で裏取り検証
+     */
+    async function filterVerifiedGoalSources(candidates, maxNeeded, signal, preferSpecific = false) {
+      const ordered = [...candidates].sort((a, b) => {
+        const score = (t) => {
+          let s = 0;
+          if (preferSpecific) {
+            if (!GENERIC_EARLY_HUBS.has(t)) s += 8;
+            if (!state.verifiedDirectHubs.has(t)) s += 2;
+          } else {
+            if (state.verifiedGoalSources.has(t)) s += 10;
+            if (state.verifiedDirectHubs.has(t)) s += 4;
+          }
+          if (isDateOrListTitle(t)) s -= 4;
+          return s;
+        };
+        return score(b) - score(a);
+      });
+ 
+      const verified = [];
+      const batchSize = 5;
+      for (let i = 0; i < ordered.length && verified.length < maxNeeded; i += batchSize) {
+        if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
+        const batch = ordered.slice(i, i + batchSize);
+        const okTitles = await batchVerifyCleanLinksToGoal(batch, signal);
+        for (const title of okTitles) {
+          verified.push(title);
+          if (verified.length >= maxNeeded) break;
+        }
+      }
+ 
+      return verified;
+    }
+ 
+    // =========================================================================
+    // 進捗UI制御（リアルタイム連想チェーン含む）
+    // =========================================================================
+ 
+    function updateProgress(text, phase) {
+      if (text) el.progressText.textContent = text;
+      if (phase) el.progressPhase.textContent = phase;
+    }
+ 
+    function renderLiveChain(chain, isCompleted = false) {
+      el.liveChainWrap.classList.remove('hidden');
+      const chips = chain.map((title, idx) => {
+        const isStart = idx === 0;
+        const isLast = idx === chain.length - 1;
+        let cls = 'bg-slate-100 text-slate-700 border-slate-200';
+        if (isStart) {
+          cls = 'bg-slate-800 text-white border-slate-800';
+        } else if (isLast && isCompleted) {
+          cls = 'bg-verdy-600 text-white border-verdy-600';
+        } else if (isLast) {
+          cls = 'bg-verdy-100 text-verdy-900 border-verdy-300';
+        }
+        const arrow = idx > 0
+          ? '<span class="text-slate-400 text-xs font-bold select-none">→</span>'
+          : '';
+        return `${arrow}<span class="inline-flex items-center px-2.5 py-1 rounded-lg border text-xs font-bold ${cls}">${escapeHtml(title)}</span>`;
+      });
+ 
+      if (!isCompleted) {
+        chips.push('<span class="text-slate-400 text-xs font-bold select-none">→</span><span class="inline-flex items-center px-2 py-1 rounded-lg border border-dashed border-verdy-300 text-[11px] font-semibold text-verdy-600 animate-pulse">次を連想中...</span>');
+      }
+      el.liveChainNodes.innerHTML = chips.join('');
+    }
+ 
+    function startProgressUI(mode) {
+      state.isSearching = true;
+      state.apiCalls = 0;
+      state.scannedCount = 0;
+      state.searchStartTime = performance.now();
+ 
+      el.searchBtn.disabled = true;
+      el.randomBtn.disabled = true;
+      el.metricApiCalls.textContent = '0回';
+      el.metricScanned.textContent = '0件';
+      el.progressElapsed.textContent = '0.0秒';
+      el.progressPanel.classList.remove('hidden');
+      el.resultSection.classList.add('hidden');
+      hideMessage();
+ 
+      if (mode === 'association') {
+        el.liveChainWrap.classList.add('hidden');
+        el.liveChainNodes.innerHTML = '';
+      } else {
+        el.liveChainWrap.classList.add('hidden');
+      }
+ 
+      clearInterval(state.elapsedTimer);
+      state.elapsedTimer = setInterval(() => {
+        const sec = (performance.now() - state.searchStartTime) / 1000;
+        el.progressElapsed.textContent = `${sec.toFixed(1)}秒`;
+      }, 100);
+    }
+ 
+    function stopProgressUI() {
+      state.isSearching = false;
+      clearInterval(state.elapsedTimer);
+      state.elapsedTimer = null;
+      el.searchBtn.disabled = false;
+      el.randomBtn.disabled = false;
+      el.progressPanel.classList.add('hidden');
+    }
+ 
+    // =========================================================================
+    // モード別メイン検索エントリ
+    // =========================================================================
+ 
+    async function runSearch(rawQuery, options = {}) {
+      const query = (rawQuery || '').trim();
+      if (!query) {
+        showMessage('warning', 'キーワードを入力してください', '出発するWikipedia記事の名前やキーワードを入力してからボタンを押してください。');
+        el.startInput.focus();
+        return;
+      }
+ 
+      closeSuggestions();
+ 
+      if (state.abortController) {
+        state.abortController.abort();
+      }
+      state.abortController = new AbortController();
+      const { signal } = state.abortController;
+      const modeAtSearch = options.forceMode || state.searchMode;
+      const excludeTokyoAtSearch = state.excludeTokyo;
+ 
+      startProgressUI(modeAtSearch);
+ 
+      try {
+        if (!state.cacheReady) {
+          updateProgress('NMB48周辺のリンクキャッシュを準備中...', '初期準備');
+          await initGoalCache();
+          if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+        }
+ 
+        // 出発記事を解決
+        updateProgress(`「${query}」のWikipedia記事を確認中...`, '記事確認');
+        const resolved = await resolveStartArticle(query, signal);
+        if (!resolved) {
+          showMessage(
+            'warning',
+            '該当する記事が見つかりませんでした',
+            `「${query}」に該当する日本語版Wikipediaの記事が見つかりませんでした。別の表記やキーワードをお試しください。`
+          );
+          return;
+        }
+ 
+        const startTitle = resolved.title;
+        el.startInput.value = startTitle;
+        updateClearBtnVisibility();
+ 
+        // 0クリック判定（すでにNMB48）
+        if (isGoalTitle(startTitle)) {
+          await finalizeSearchResult({
+            mode: modeAtSearch,
+            startTitle: state.canonicalGoal,
+            note: resolved.note,
+            excludeTokyo: excludeTokyoAtSearch,
+            routes: [[state.canonicalGoal]]
+          });
+          return;
+        }
+ 
+        if (modeAtSearch === 'association') {
+          await executeAssociationMode({
+            startTitle,
+            note: resolved.note,
+            excludeTokyo: excludeTokyoAtSearch,
+            avoidPreviousFirstHop: Boolean(options.avoidPreviousFirstHop),
+            signal
+          });
+        } else {
+          await executeShortestSearch({
+            startTitle,
+            note: resolved.note,
+            excludeTokyo: excludeTokyoAtSearch,
+            signal
+          });
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          showMessage('info', '検索をキャンセルしました', '別のキーワードを入力してもう一度試せます。');
+        } else if (err.isRateLimit) {
+          console.error('検索エラー (レート制限):', err);
+          showMessage(
+            'warning',
+            'Wikipediaへのアクセスが混み合っています（HTTP 429）',
+            '短時間に多くのAPIリクエストが送信されたため、Wikipedia側で一時的に制限がかかりました。10〜20秒ほど待ってからもう一度お試しください。'
+          );
+        } else {
+          console.error('検索エラー:', err);
+          showMessage(
+            'error',
+            '検索中にエラーが発生しました',
+            `Wikipediaとの通信中に問題が発生しました（${err.message}）。少し待ってから再度お試しください。`
+          );
+        }
+      } finally {
+        stopProgressUI();
+      }
+    }
+ 
+    // =========================================================================
+    // 1. 連想モード（片方向で1手ずつ本文リンクをたどる）
+    // =========================================================================
+ 
+    async function executeAssociationMode({ startTitle, note, excludeTokyo, avoidPreviousFirstHop, signal }) {
+      const MAX_STEPS = 8;
+      const chain = [startTitle];
+      const visited = new Set([startTitle]);
+      const deadEnds = new Set();
+ 
+      if (!state.usedAssociationFirstHops.has(startTitle)) {
+        state.usedAssociationFirstHops.set(startTitle, new Set());
+      }
+      const prevFirstHops = state.usedAssociationFirstHops.get(startTitle);
+ 
+      const getActiveLandingHubs = () =>
+        Array.from(state.verifiedDirectHubs).filter(
+          (t) =>
+            !isExcludedIntermediate(t, excludeTokyo) &&
+            !state.rejectedGoalSources.has(t) &&
+            !deadEnds.has(t) &&
+            !visited.has(t)
+        );
+ 
+      renderLiveChain(chain, false);
+ 
+      let safetyIterations = 0;
+      while (chain.length - 1 < MAX_STEPS && safetyIterations < 14) {
+        safetyIterations += 1;
+        if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+ 
+        const current = chain[chain.length - 1];
+        const stepNum = chain.length; // これから行うクリック数（1, 2, 3...）
+ 
+        updateProgress(`「${current}」の本文から次の連想ワードを探しています...`, `連想 ${stepNum}手目`);
+        const cleanSet = await getCleanBodyLinks(current, signal);
+ 
+        // 1. 直接ゴール記事へリンクしているかチェック
+        for (const alias of state.goalAliases) {
+          if (cleanSet.has(alias)) {
+            chain.push(state.canonicalGoal);
+            renderLiveChain(chain, true);
+            await finalizeSearchResult({
+              mode: 'association',
+              startTitle,
+              note,
+              excludeTokyo,
+              routes: [chain]
+            });
+            return;
+          }
+        }
+ 
+        // 本文出現順の候補リストを作成
+        const orderedLinks = Array.from(cleanSet).filter(
+          (t) =>
+            !visited.has(t) &&
+            !deadEnds.has(t) &&
+            !isGoalTitle(t) &&
+            !isExcludedIntermediate(t, excludeTokyo)
+        );
+ 
+        // 行き止まりの場合は1手戻って別ルートを試す
+        if (orderedLinks.length === 0) {
+          if (chain.length > 1) {
+            const popped = chain.pop();
+            deadEnds.add(popped);
+            renderLiveChain(chain, false);
+            continue;
+          }
+          break;
+        }
+ 
+        const nonDateLinks = orderedLinks.filter((t) => !isDateOrListTitle(t));
+        const workingLinks = nonDateLinks.length > 0 ? nonDateLinks : orderedLinks;
+ 
+        // 2. ゴールへ1クリックで届く記事が本文中にあるかチェック
+        const directGoalBacklinks = workingLinks.filter(
+          (t) => state.goalBacklinks.has(t) && !state.rejectedGoalSources.has(t)
+        );
+ 
+        // 1手目では超一般ハブ（日本・日本テレビ・読売新聞など）への即着地を避け、連想ゲーム感を優先する
+        const specificGoalBacklinks = directGoalBacklinks.filter((t) => !GENERIC_EARLY_HUBS.has(t));
+        const shouldTryLandingNow =
+          (stepNum === 1 && specificGoalBacklinks.length > 0 && !avoidPreviousFirstHop) ||
+          (stepNum >= 2 && directGoalBacklinks.length > 0);
+ 
+        if (shouldTryLandingNow) {
+          const candidatesToVerify = stepNum === 1
+            ? specificGoalBacklinks.slice(0, 4)
+            : [...specificGoalBacklinks, ...directGoalBacklinks.filter((t) => GENERIC_EARLY_HUBS.has(t))].slice(0, 5);
+ 
+          updateProgress(`「${current}」からNMB48へつながる連想先を検証中...`, `連想 ${stepNum}手目`);
+          const verifiedLandings = await filterVerifiedGoalSources(candidatesToVerify, 1, signal, true);
+          if (verifiedLandings.length > 0) {
+            const chosenMid = verifiedLandings[Math.floor(Math.random() * verifiedLandings.length)];
+            if (stepNum === 1) prevFirstHops.add(chosenMid);
+            chain.push(chosenMid, state.canonicalGoal);
+            renderLiveChain(chain, true);
+            await finalizeSearchResult({
+              mode: 'association',
+              startTitle,
+              note,
+              excludeTokyo,
+              routes: [chain]
+            });
+            return;
+          }
+        }
+ 
+        // 3. 次の1手を選ぶ（序盤は記事冒頭の固有語を優先、中盤以降はゴール方向へ緩やかに収束）
+        let nextTitle = null;
+ 
+        if (stepNum === 1) {
+          // 1手目：記事冒頭〜前半にある、その単語らしい固有キーワードを優先（超一般語・前回使用語は後回し）
+          const leadSlice = workingLinks.slice(0, 40);
+          let topicalPool = leadSlice.filter((t) => !GENERIC_EARLY_HUBS.has(t) && !prevFirstHops.has(t));
+          if (topicalPool.length === 0) {
+            topicalPool = leadSlice.filter((t) => !GENERIC_EARLY_HUBS.has(t));
+          }
+          if (topicalPool.length === 0) {
+            topicalPool = workingLinks.filter((t) => !prevFirstHops.has(t));
+          }
+          if (topicalPool.length === 0) {
+            prevFirstHops.clear();
+            topicalPool = workingLinks;
+          }
+ 
+          // 冒頭上位から少しランダム性を持たせて選ぶ
+          const candidateSlice = topicalPool.slice(0, Math.min(18, topicalPool.length));
+          nextTitle = pickWeightedRandom(candidateSlice, 10);
+          if (nextTitle) prevFirstHops.add(nextTitle);
+        } else if (stepNum === 2) {
+          // 2手目：1回だけ軽量照合し、面白いつながり先があれば優先、なければ冒頭寄りから連想を進める
+          const activeHubs = getActiveLandingHubs();
+          const sampleForCheck = workingLinks
+            .filter((t) => !GENERIC_EARLY_HUBS.has(t))
+            .slice(0, 35);
+ 
+          let steered = [];
+          if (sampleForCheck.length > 0 && activeHubs.length > 0) {
+            const matchMap = await batchCheckLinksToTargets(sampleForCheck, activeHubs, signal);
+            for (const cand of sampleForCheck) {
+              const hits = matchMap.get(cand) || [];
+              if (hits.length > 0) {
+                const hasSpecificHit = hits.some((h) => !GENERIC_EARLY_HUBS.has(h));
+                steered.push({ title: cand, score: (hasSpecificHit ? 5 : 2) + Math.random() * 2 });
+              }
+            }
+          }
+ 
+          if (steered.length > 0 && Math.random() < 0.65) {
+            steered.sort((a, b) => b.score - a.score);
+            nextTitle = pickWeightedRandom(steered.map((s) => s.title), 4);
+          } else {
+            const pool = workingLinks.filter((t) => !GENERIC_EARLY_HUBS.has(t)).slice(0, 20);
+            nextTitle = pickWeightedRandom(pool.length > 0 ? pool : workingLinks, 10);
+          }
+        } else {
+          // 3手目以降：NMB48へ自然に着地できるよう、1回の軽量照合で着地ハブへつながるリンクを優先
+          const activeHubs = getActiveLandingHubs();
+          const sampleForCheck = workingLinks.slice(0, 45);
+ 
+          if (sampleForCheck.length > 0 && activeHubs.length > 0) {
+            updateProgress(`「${current}」からNMB48へ近づく連想先を検索中...`, `連想 ${stepNum}手目`);
+            const matchMap = await batchCheckLinksToTargets(sampleForCheck, activeHubs, signal);
+            const scored = [];
+            for (let idx = 0; idx < sampleForCheck.length; idx++) {
+              const cand = sampleForCheck[idx];
+              const hits = matchMap.get(cand) || [];
+              if (hits.length > 0) {
+                const specificBonus = !GENERIC_EARLY_HUBS.has(cand) ? 4 : 0;
+                const hitBonus = hits.some((h) => !GENERIC_EARLY_HUBS.has(h)) ? 4 : 1;
+                const posBonus = Math.max(0, 3 - idx * 0.08);
+                scored.push({ title: cand, score: specificBonus + hitBonus + posBonus + Math.random() * 1.5 });
+              }
+            }
+            if (scored.length > 0) {
+              scored.sort((a, b) => b.score - a.score);
+              nextTitle = pickWeightedRandom(scored.map((s) => s.title), 3);
+            }
+          }
+ 
+          // まだ着地ハブに届かない場合は中継ハブ経由で日本・スポーツ・メディア圏へ寄せる
+          if (!nextTitle) {
+            const bridgeInLinks = workingLinks.filter((t) => PRIORITY_BRIDGE_HUBS.has(t));
+            if (bridgeInLinks.length > 0) {
+              nextTitle = pickWeightedRandom(bridgeInLinks, 5);
+            } else {
+              nextTitle = pickWeightedRandom(workingLinks.slice(0, 15), 8);
+            }
+          }
+        }
+ 
+        if (!nextTitle) {
+          if (chain.length > 1) {
+            const popped = chain.pop();
+            deadEnds.add(popped);
+            renderLiveChain(chain, false);
+            continue;
+          }
+          break;
+        }
+ 
+        chain.push(nextTitle);
+        visited.add(nextTitle);
+        renderLiveChain(chain, false);
+      }
+ 
+      // 規定手数内に着地できなかった場合
+      const excludeText = excludeTokyo ? '（「AKB48」除外）' : '';
+      showMessage(
+        'warning',
+        `${MAX_STEPS}手以内の連想でゴールに届きませんでした`,
+        `「${startTitle}」からの連想ルート（${chain.join(' → ')}）では${MAX_STEPS}手以内にNMB48へ到達できませんでした${excludeText}。もう一度ボタンを押して別の連想を試すか、「最短ルート検索」タブもお試しください。`
+      );
+    }
+ 
+    // =========================================================================
+    // 2. 最短ルート検索（0〜4クリック・双方向リアルタイム・本文リンク限定）
+    // =========================================================================
+ 
+    async function executeShortestSearch({ startTitle, note, excludeTokyo, signal }) {
+      // Step 1: 1クリック検索（出発記事の本文リンクを取得・脚注と一覧表を除外）
+      updateProgress(`「${startTitle}」の本文リンク（脚注・一覧除外）を解析中...`, '1クリック検索');
+      const startCleanSet = await getCleanBodyLinks(startTitle, signal);
+ 
+      for (const alias of state.goalAliases) {
+        if (startCleanSet.has(alias)) {
+          await finalizeSearchResult({
+            mode: 'shortest',
+            startTitle,
+            note,
+            excludeTokyo,
+            routes: [[startTitle, state.canonicalGoal]]
+          });
+          return;
+        }
+      }
+ 
+      const allowedLevel1Links = Array.from(startCleanSet).filter(
+        (t) => t !== startTitle && !isGoalTitle(t) && !isExcludedIntermediate(t, excludeTokyo)
+      );
+ 
+      if (allowedLevel1Links.length === 0) {
+        showMessage(
+          'warning',
+          '本文中にたどれるリンクが見つかりませんでした',
+          `「${startTitle}」の本文領域（脚注・一覧表を除く）に他のWikipedia記事へのリンクが見つかりませんでした。`
+        );
+        return;
+      }
+ 
+      // Step 2: 2クリック検索（出発 → [中継A] → NMB48）
+      updateProgress('2クリックで到達できるルートを照合・本文検証中...', '2クリック検索');
+ 
+      const twoHopCandidates = allowedLevel1Links.filter((t) => state.goalBacklinks.has(t));
+      if (twoHopCandidates.length > 0) {
+        const verifiedTwoHop = await filterVerifiedGoalSources(twoHopCandidates, 3, signal);
+        if (verifiedTwoHop.length > 0) {
+          const routes = verifiedTwoHop.map((mid) => [startTitle, mid, state.canonicalGoal]);
+          await finalizeSearchResult({
+            mode: 'shortest',
+            startTitle,
+            note,
+            excludeTokyo,
+            routes
+          });
+          return;
+        }
+      }
+ 
+      // Step 3: 3クリック検索（出発 → [中継A] → [中継B] → NMB48）
+      const prioritizedL1 = prioritizeCandidates(allowedLevel1Links, excludeTokyo);
+      const activeDirectHubs = Array.from(state.verifiedDirectHubs).filter(
+        (t) => !isExcludedIntermediate(t, excludeTokyo) && !state.rejectedGoalSources.has(t)
+      );
+ 
+      const verifyThreeHopPairs = async (pairs, maxPairsToCheck, maxRoutesNeeded) => {
+        const verifiedRoutes = [];
+        const usedRouteKey = new Set();
+        const limit = Math.min(pairs.length, maxPairsToCheck);
+ 
+        for (let i = 0; i < limit && verifiedRoutes.length < maxRoutesNeeded; i += 4) {
+          if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+          const batch = pairs.slice(i, i + 4);
+ 
+          // バッチ内の中継A・中継Bの本文を一括取得してAPI通信回数を最小化
+          const midAs = Array.from(new Set(batch.map((p) => p.midA)));
+          const cleanAMap = await batchGetCleanBodyLinks(midAs, signal);
+ 
+          const validPairs = batch.filter((p) => {
+            const cleanA = cleanAMap.get(normalizeTitle(p.midA));
+            return Boolean(cleanA && cleanA.has(p.midB));
+          });
+          if (validPairs.length === 0) continue;
+ 
+          const midBs = Array.from(new Set(validPairs.map((p) => p.midB)));
+          const verifiedBs = new Set(await batchVerifyCleanLinksToGoal(midBs, signal));
+ 
+          for (const pair of validPairs) {
+            if (!verifiedBs.has(pair.midB)) continue;
+            const route = [startTitle, pair.midA, pair.midB, state.canonicalGoal];
+            const key = route.join('->');
+            if (!usedRouteKey.has(key)) {
+              usedRouteKey.add(key);
+              verifiedRoutes.push(route);
+              if (verifiedRoutes.length >= maxRoutesNeeded) break;
+            }
+          }
+        }
+        return verifiedRoutes;
+      };
+ 
+      // Phase 3A: pltitles を使い、1回のAPI呼び出しで最大50件の中継候補と主要ハブを高速照合
+      if (activeDirectHubs.length > 0) {
+        updateProgress('3クリックルートを高速照合中（主要ハブ経由）...', '3クリック検索');
+        const fastL1 = prioritizedL1.slice(0, 50);
+        const hubMatchMap = await batchCheckLinksToTargets(fastL1, activeDirectHubs, signal);
+ 
+        const fastPairs = [];
+        const seenFast = new Set();
+        for (const midA of fastL1) {
+          const matchedHubs = hubMatchMap.get(midA) || [];
+          for (const midB of matchedHubs) {
+            if (midB === startTitle || midB === midA || isGoalTitle(midB)) continue;
+            if (isExcludedIntermediate(midB, excludeTokyo)) continue;
+            const pairKey = `${midA}>>>${midB}`;
+            if (!seenFast.has(pairKey)) {
+              seenFast.add(pairKey);
+              fastPairs.push({ midA, midB });
+            }
+          }
+        }
+ 
+        if (fastPairs.length > 0) {
+          updateProgress('3クリック候補の本文リンク（脚注・一覧除外）を検証中...', '3クリック検証');
+          fastPairs.sort((a, b) => {
+            const score = (p) =>
+              (PRIORITY_BRIDGE_HUBS.has(p.midA) ? 2 : 0) +
+              (isDateOrListTitle(p.midA) ? -2 : 0) +
+              (isDateOrListTitle(p.midB) ? -2 : 0);
+            return score(b) - score(a);
+          });
+ 
+          const verifiedFastRoutes = await verifyThreeHopPairs(fastPairs, 12, 3);
+          if (verifiedFastRoutes.length > 0) {
+            await finalizeSearchResult({
+              mode: 'shortest',
+              startTitle,
+              note,
+              excludeTokyo,
+              routes: verifiedFastRoutes
+            });
+            return;
+          }
+        }
+      }
+ 
+      // Phase 3B: ハブ以外（一般被リンク）を経由する3クリックルートをフォールバック検索
+      updateProgress('3クリックルートを検索中（中継記事のリンクを展開）...', '3クリック検索');
+ 
+      const l1ToExpand = prioritizedL1.slice(0, 30);
+      const l1OutgoingMap = await batchFetchOutgoingLinks(l1ToExpand, signal);
+ 
+      const threeHopCandidatePairs = [];
+      const seenMidB = new Set();
+ 
+      for (const midA of l1ToExpand) {
+        const outLinks = l1OutgoingMap.get(midA) || [];
+        for (const midB of outLinks) {
+          if (midB === startTitle || midB === midA || isGoalTitle(midB)) continue;
+          if (isExcludedIntermediate(midB, excludeTokyo)) continue;
+ 
+          if (state.goalBacklinks.has(midB)) {
+            const pairKey = `${midA}>>>${midB}`;
+            if (!seenMidB.has(pairKey)) {
+              seenMidB.add(pairKey);
+              threeHopCandidatePairs.push({ midA, midB });
+            }
+          }
+        }
+      }
+ 
+      if (threeHopCandidatePairs.length > 0) {
+        updateProgress('3クリック候補の本文リンク（脚注・一覧除外）を検証中...', '3クリック検証');
+        threeHopCandidatePairs.sort((a, b) => {
+          const score = (p) =>
+            (state.verifiedDirectHubs.has(p.midB) ? 4 : 0) +
+            (PRIORITY_BRIDGE_HUBS.has(p.midA) ? 2 : 0) +
+            (isDateOrListTitle(p.midA) ? -2 : 0) +
+            (isDateOrListTitle(p.midB) ? -2 : 0);
+          return score(b) - score(a);
+        });
+ 
+        const verifiedThreeHopRoutes = await verifyThreeHopPairs(threeHopCandidatePairs, 16, 3);
+        if (verifiedThreeHopRoutes.length > 0) {
+          await finalizeSearchResult({
+            mode: 'shortest',
+            startTitle,
+            note,
+            excludeTokyo,
+            routes: verifiedThreeHopRoutes
+          });
+          return;
+        }
+      }
+ 
+      // Step 4: 4クリック検索（出発 → [A] → [B] → [C] → NMB48）
+      updateProgress('4クリックルートを検索中（主要ハブを経由して検索）...', '4クリック検索');
+ 
+      const topMidAs = l1ToExpand.slice(0, 12);
+      const l2ParentMap = new Map();
+      const l2Candidates = [];
+ 
+      for (const midA of topMidAs) {
+        const outA = l1OutgoingMap.get(midA) || [];
+        for (const midB of outA) {
+          if (midB === startTitle || midB === midA || isGoalTitle(midB)) continue;
+          if (isExcludedIntermediate(midB, excludeTokyo)) continue;
+          if (!l2ParentMap.has(midB)) {
+            l2ParentMap.set(midB, midA);
+            l2Candidates.push(midB);
+          }
+        }
+      }
+ 
+      const prioritizedL2 = prioritizeCandidates(l2Candidates, excludeTokyo).slice(0, 50);
+      const fourHopCandidates = [];
+ 
+      if (prioritizedL2.length > 0 && activeDirectHubs.length > 0) {
+        const l2HubMap = await batchCheckLinksToTargets(prioritizedL2, activeDirectHubs, signal);
+        for (const midB of prioritizedL2) {
+          const midA = l2ParentMap.get(midB);
+          const matchedC = l2HubMap.get(midB) || [];
+          for (const midC of matchedC) {
+            if (midC === startTitle || midC === midA || midC === midB || isGoalTitle(midC)) continue;
+            if (isExcludedIntermediate(midC, excludeTokyo)) continue;
+            fourHopCandidates.push({ midA, midB, midC });
+            if (fourHopCandidates.length >= 16) break;
+          }
+          if (fourHopCandidates.length >= 16) break;
+        }
+      }
+ 
+      if (fourHopCandidates.length === 0 && prioritizedL2.length > 0) {
+        const l2Sample = prioritizedL2.slice(0, 20);
+        const l2OutgoingMap = await batchFetchOutgoingLinks(l2Sample, signal);
+        for (const midB of l2Sample) {
+          const midA = l2ParentMap.get(midB);
+          const outB = l2OutgoingMap.get(midB) || [];
+          for (const midC of outB) {
+            if (midC === startTitle || midC === midA || midC === midB || isGoalTitle(midC)) continue;
+            if (isExcludedIntermediate(midC, excludeTokyo)) continue;
+            if (state.goalBacklinks.has(midC)) {
+              fourHopCandidates.push({ midA, midB, midC });
+              if (fourHopCandidates.length >= 16) break;
+            }
+          }
+          if (fourHopCandidates.length >= 16) break;
+        }
+      }
+ 
+      if (fourHopCandidates.length > 0) {
+        updateProgress('4クリック候補の本文リンクを検証中...', '4クリック検証');
+ 
+        const verifiedFourHopRoutes = [];
+        const usedKeys = new Set();
+ 
+        for (let i = 0; i < fourHopCandidates.length && verifiedFourHopRoutes.length < 2; i += 3) {
+          if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+          const batch = fourHopCandidates.slice(i, i + 3);
+ 
+          const midAs = Array.from(new Set(batch.map((c) => c.midA)));
+          const cleanAMap = await batchGetCleanBodyLinks(midAs, signal);
+          const passA = batch.filter((c) => cleanAMap.get(normalizeTitle(c.midA))?.has(c.midB));
+          if (passA.length === 0) continue;
+ 
+          const midBs = Array.from(new Set(passA.map((c) => c.midB)));
+          const cleanBMap = await batchGetCleanBodyLinks(midBs, signal);
+          const passB = passA.filter((c) => cleanBMap.get(normalizeTitle(c.midB))?.has(c.midC));
+          if (passB.length === 0) continue;
+ 
+          const midCs = Array.from(new Set(passB.map((c) => c.midC)));
+          const verifiedCs = new Set(await batchVerifyCleanLinksToGoal(midCs, signal));
+ 
+          for (const cand of passB) {
+            if (!verifiedCs.has(cand.midC)) continue;
+            const route = [startTitle, cand.midA, cand.midB, cand.midC, state.canonicalGoal];
+            const key = route.join('->');
+            if (!usedKeys.has(key)) {
+              usedKeys.add(key);
+              verifiedFourHopRoutes.push(route);
+              if (verifiedFourHopRoutes.length >= 2) break;
+            }
+          }
+        }
+ 
+        if (verifiedFourHopRoutes.length > 0) {
+          await finalizeSearchResult({
+            mode: 'shortest',
+            startTitle,
+            note,
+            excludeTokyo,
+            routes: verifiedFourHopRoutes
+          });
+          return;
+        }
+      }
+ 
+      // 4クリック以内で見つからなかった場合
+      const excludeText = excludeTokyo ? '（「AKB48」も除外）' : '';
+      showMessage(
+        'warning',
+        '4クリック以内のルートが見つかりませんでした',
+        `「${startTitle}」から本文リンク限定${excludeText}で4クリック以内に「${state.canonicalGoal}」へ到達する経路を発見できませんでした。${excludeTokyo ? '「「AKB48」を除外」をOFFにするか、' : ''}「連想モード」または別のキーワードをお試しください。`
+      );
+    }
+ 
+    // =========================================================================
+    // 記事メタデータ取得 & 結果レンダリング
+    // =========================================================================
+ 
+    async function fetchArticleSummaries(titles) {
+      const unique = Array.from(new Set(titles)).filter((t) => !state.articleInfoCache.has(t));
+      if (unique.length === 0) return;
+ 
+      try {
+        const data = await wikiFetch(
+          {
+            action: 'query',
+            titles: unique.join('|'),
+            prop: 'pageimages|extracts',
+            pithumbsize: '160',
+            exintro: '1',
+            explaintext: '1',
+            exsentences: '2',
+            redirects: '1'
+          },
+          null,
+          false
+        );
+ 
+        const pages = data?.query?.pages || [];
+        const byTitle = new Map();
+        for (const p of pages) {
+          byTitle.set(p.title, {
+            title: p.title,
+            extract: (p.extract || '').trim() || 'Wikipediaの記事ページで詳細を確認できます。',
+            thumbnail: p.thumbnail?.source || null,
+            url: wikiArticleUrl(p.title)
+          });
+        }
+ 
+        const redirects = new Map();
+        for (const r of data?.query?.redirects || []) {
+          redirects.set(r.from, r.to);
+        }
+ 
+        for (const t of unique) {
+          const target = redirects.get(t) || t;
+          const info = byTitle.get(target) || {
+            title: t,
+            extract: 'Wikipediaの記事ページで詳細を確認できます。',
+            thumbnail: null,
+            url: wikiArticleUrl(t)
+          };
+          state.articleInfoCache.set(t, info);
+        }
+      } catch (err) {
+        console.warn('記事概要の取得に失敗（フォールバック表示）:', err);
+      }
+    }
+ 
+    async function finalizeSearchResult({ mode, startTitle, note, excludeTokyo, routes }) {
+      updateProgress('見つかったルートの記事情報を取得中...', '結果表示');
+ 
+      const allTitles = routes.flat();
+      await fetchArticleSummaries(allTitles);
+ 
+      state.currentResult = {
+        mode: mode || 'association',
+        startTitle,
+        note: note || '',
+        excludeTokyo: Boolean(excludeTokyo),
+        routes,
+        selectedIndex: 0
+      };
+ 
+      renderCurrentResult();
+      saveToHistory(state.currentResult);
+    }
+ 
+    function renderCurrentResult() {
+      const res = state.currentResult;
+      if (!res || !res.routes || res.routes.length === 0) return;
+ 
+      const route = res.routes[res.selectedIndex] || res.routes[0];
+      const clicks = Math.max(0, route.length - 1);
+      const isAssoc = res.mode === 'association';
+ 
+      el.resultClicksBadge.textContent = clicks === 0 ? '0クリック（ゴール記事そのもの！）' : `${clicks}クリックで到達！`;
+      el.resultModeBadge.textContent = isAssoc ? '連想モード（片方向）' : '最短ルート検索';
+ 
+      if (res.excludeTokyo) {
+        el.resultExcludeBadge.classList.remove('hidden');
+      } else {
+        el.resultExcludeBadge.classList.add('hidden');
+      }
+ 
+      if (clicks === 0) {
+        el.resultHeadline.textContent = `「${res.startTitle}」はゴール記事そのものです！`;
+      } else if (isAssoc) {
+        el.resultHeadline.textContent = `「${res.startTitle}」から ${clicks}クリック の連想でNMB48へ到達`;
+      } else {
+        el.resultHeadline.textContent = `「${res.startTitle}」から ${clicks}クリック でNMB48へ到達`;
+      }
+ 
+      if (res.note) {
+        el.resultSubnote.textContent = res.note;
+        el.resultSubnote.classList.remove('hidden');
+      } else {
+        el.resultSubnote.classList.add('hidden');
+      }
+ 
+      el.resultPathSummary.textContent = route.join(' → ');
+ 
+      // 連想モード時は「別の連想を試す」ボタンを表示（0クリック時を除く）
+      if (isAssoc && clicks > 0) {
+        el.retryAssociationBtn.classList.remove('hidden');
+      } else {
+        el.retryAssociationBtn.classList.add('hidden');
+      }
+ 
+      // 別ルート切り替えボタン（最短ルート検索で複数候補がある場合）
+      if (res.routes.length > 1) {
+        el.altRoutesBar.classList.remove('hidden');
+        el.altRoutesButtons.innerHTML = res.routes
+          .map((_, idx) => {
+            const active = idx === res.selectedIndex;
+            const cls = active
+              ? 'bg-verdy-600 text-white border-verdy-600 shadow-sm'
+              : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100';
+            return `<button type="button" data-route-idx="${idx}" class="px-3 py-1.5 rounded-lg border text-xs font-bold transition cursor-pointer ${cls}">ルート ${idx + 1}</button>`;
+          })
+          .join('');
+      } else {
+        el.altRoutesBar.classList.add('hidden');
+      }
+ 
+      // ルートカード描画
+      const cardsHtml = route
+        .map((title, idx) => {
+          const info = state.articleInfoCache.get(title) || {
+            title,
+            extract: 'Wikipediaの記事ページで詳細を確認できます。',
+            thumbnail: null,
+            url: wikiArticleUrl(title)
+          };
+ 
+          const isStart = idx === 0;
+          const isGoal = idx === route.length - 1;
+ 
+          let stepBadge = '';
+          let cardBorder = 'border-slate-200/90 hover:border-verdy-300';
+          if (isStart && isGoal) {
+            stepBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-gold-500 text-verdy-950">GOAL</span>';
+            cardBorder = 'border-gold-400 bg-verdy-50/40';
+          } else if (isStart) {
+            stepBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-slate-800 text-white">START</span>';
+          } else if (isGoal) {
+            stepBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-verdy-600 text-white">GOAL</span>';
+            cardBorder = 'border-verdy-400 bg-verdy-50/40';
+          } else {
+            const stepLabel = isAssoc ? `連想 ${idx}手目` : `${idx}クリック目`;
+            stepBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-verdy-100 text-verdy-800">${stepLabel}</span>`;
+          }
+ 
+          const thumbHtml = info.thumbnail
+            ? `<img src="${escapeHtml(info.thumbnail)}" alt="${escapeHtml(title)}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover bg-slate-100 border border-slate-200/70 shrink-0" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+               <div class="hidden w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-verdy-50 border border-verdy-100 text-verdy-700 items-center justify-center shrink-0">
+                 <svg class="w-7 h-7 opacity-60" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+               </div>`
+            : `<div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-verdy-50 border border-verdy-100 text-verdy-700 flex items-center justify-center shrink-0">
+                 <svg class="w-7 h-7 opacity-60" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+               </div>`;
+ 
+          const connectorHtml = !isGoal
+            ? `<div class="flex justify-center py-0.5" aria-hidden="true">
+                 <div class="inline-flex items-center gap-1.5 text-verdy-600/80 text-xs font-bold">
+                   <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                   </svg>
+                 </div>
+               </div>`
+            : '';
+ 
+          return `
+            <a href="${escapeHtml(info.url)}" target="_blank" rel="noopener noreferrer"
+               class="block bg-white rounded-2xl border p-4 shadow-sm hover:shadow-md transition ${cardBorder}">
+              <div class="flex items-start gap-3.5">
+                ${thumbHtml}
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-2 mb-1">
+                    ${stepBadge}
+                    <span class="text-[11px] text-slate-400 font-medium inline-flex items-center gap-0.5 ml-auto">
+                      Wikipediaで開く
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </span>
+                  </div>
+                  <h3 class="text-base sm:text-lg font-extrabold text-slate-900 break-words leading-snug">
+                    ${escapeHtml(title)}
+                  </h3>
+                  <p class="mt-1 text-xs sm:text-sm text-slate-600 line-clamp-2 leading-relaxed">
+                    ${escapeHtml(info.extract)}
+                  </p>
+                </div>
+              </div>
+            </a>
+            ${connectorHtml}
+          `;
+        })
+        .join('');
+ 
+      el.routeCardsContainer.innerHTML = cardsHtml;
+      el.resultSection.classList.remove('hidden');
+    }
+ 
+    // =========================================================================
+    // シェア・コピー機能（公開URL自動付与対応）
+    // =========================================================================
+ 
+    function buildShareText(includeUrlInline) {
+      const res = state.currentResult;
+      if (!res || !res.routes || res.routes.length === 0) return '';
+      const route = res.routes[res.selectedIndex] || res.routes[0];
+      const clicks = Math.max(0, route.length - 1);
+      const isAssoc = res.mode === 'association';
+ 
+      const flags = [];
+      if (isAssoc) flags.push('連想モード');
+      if (res.excludeTokyo) flags.push('「AKB48」除外');
+      const modeLine = flags.length > 0 ? `（※${flags.join('・')}）\n` : '';
+ 
+      let header = '';
+      if (clicks === 0) {
+        header = `「${res.startTitle}」は0クリックでNMB48！`;
+      } else if (isAssoc) {
+        header = `「${res.startTitle}」から${clicks}クリックの連想でNMB48に到達！`;
+      } else {
+        header = `「${res.startTitle}」から${clicks}クリックでNMB48に到達！`;
+      }
+ 
+      const lines = [
+        header,
+        `${modeLine}${route.join(' → ')}`,
+        '',
+        '#NMB48 #NMB48への最短ルート検索'
+      ];
+ 
+      if (includeUrlInline) {
+        const publicUrl = getPublicUrl();
+        if (publicUrl) {
+          lines.push(publicUrl);
+        }
+      }
+ 
+      return lines.join('\n');
+    }
+ 
+    function copyCurrentResult() {
+      const text = buildShareText(true);
+      if (!text) return;
+ 
+      let copied = false;
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.top = '-9999px';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        textarea.setSelectionRange(0, text.length);
+        copied = document.execCommand('copy');
+        document.body.removeChild(textarea);
+      } catch (err) {
+        console.warn('execCommandコピー失敗:', err);
+      }
+ 
+      if (copied) {
+        el.copyResultBtnLabel.textContent = 'コピーしました！';
+        clearTimeout(copyLabelTimer);
+        copyLabelTimer = setTimeout(() => {
+          el.copyResultBtnLabel.textContent = '結果をコピー';
+        }, 2000);
+        showToast('検索結果をクリップボードにコピーしました');
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          el.copyResultBtnLabel.textContent = 'コピーしました！';
+          clearTimeout(copyLabelTimer);
+          copyLabelTimer = setTimeout(() => {
+            el.copyResultBtnLabel.textContent = '結果をコピー';
+          }, 2000);
+          showToast('検索結果をクリップボードにコピーしました');
+        }).catch(() => {
+          showToast('コピーに失敗しました');
+        });
+      } else {
+        showToast('コピーに失敗しました');
+      }
+    }
+ 
+    function shareResultOnX() {
+      const text = buildShareText(false);
+      if (!text) return;
+ 
+      const intentUrl = new URL('https://x.com/intent/tweet');
+      intentUrl.searchParams.set('text', text);
+ 
+      const publicUrl = getPublicUrl();
+      if (publicUrl) {
+        intentUrl.searchParams.set('url', publicUrl);
+      }
+ 
+      window.open(intentUrl.toString(), '_blank', 'noopener,noreferrer');
+    }
+ 
+    // =========================================================================
+    // モード切り替えUI・入力補完・プリセット・ランダム・履歴
+    // =========================================================================
+ 
+    function updateSearchModeUI() {
+      const isAssoc = state.searchMode === 'association';
+ 
+      el.modeAssociationBtn.setAttribute('aria-selected', String(isAssoc));
+      el.modeShortestBtn.setAttribute('aria-selected', String(!isAssoc));
+ 
+      if (isAssoc) {
+        el.modeAssociationBtn.className = 'flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition cursor-pointer bg-verdy-600 text-white shadow-sm';
+        el.modeAssociationSub.className = 'text-[10px] sm:text-[11px] font-semibold px-1.5 py-0.5 rounded bg-white/20 text-verdy-50';
+        el.modeShortestBtn.className = 'flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition cursor-pointer text-slate-600 hover:text-slate-800 hover:bg-white/60';
+        el.modeShortestSub.className = 'text-[10px] sm:text-[11px] font-semibold px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-500';
+        el.modeDescription.textContent = '出発記事の本文リンクを片方向で1手ずつ連想ゲームのようにたどり、NMB48を目指します（寄り道あり・毎回変化）。';
+        el.searchBtnLabel.textContent = '連想をスタート';
+      } else {
+        el.modeAssociationBtn.className = 'flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition cursor-pointer text-slate-600 hover:text-slate-800 hover:bg-white/60';
+        el.modeAssociationSub.className = 'text-[10px] sm:text-[11px] font-semibold px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-500';
+        el.modeShortestBtn.className = 'flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition cursor-pointer bg-verdy-600 text-white shadow-sm';
+        el.modeShortestSub.className = 'text-[10px] sm:text-[11px] font-semibold px-1.5 py-0.5 rounded bg-white/20 text-verdy-50';
+        el.modeDescription.textContent = '出発記事とNMB48の両側からリンクを照合し、最短クリック数（最大4クリック）のルートを検索します。';
+        el.searchBtnLabel.textContent = '最短ルートを検索';
+      }
+    }
+ 
+    function setSearchMode(newMode) {
+      if (state.searchMode === newMode) return;
+      state.searchMode = newMode;
+      updateSearchModeUI();
+      showToast(newMode === 'association' ? '連想モードに切り替えました' : '最短ルート検索に切り替えました');
+ 
+      // すでに結果が表示されていて検索中でなければ、新モードで自動再検索
+      if (!state.isSearching && state.currentResult && state.currentResult.startTitle) {
+        runSearch(state.currentResult.startTitle);
+      }
+    }
+ 
+    function closeSuggestions() {
+      el.suggestList.classList.add('hidden');
+      el.suggestList.innerHTML = '';
+      state.suggestItems = [];
+      state.suggestActiveIndex = -1;
+    }
+ 
+    function renderSuggestions(items) {
+      state.suggestItems = items;
+      state.suggestActiveIndex = -1;
+ 
+      if (!items || items.length === 0) {
+        closeSuggestions();
+        return;
+      }
+ 
+      el.suggestList.innerHTML = items
+        .map(
+          (title, idx) => `
+          <li role="option" data-suggest-idx="${idx}"
+              class="px-4 py-2.5 text-sm text-slate-800 hover:bg-verdy-50 hover:text-verdy-800 cursor-pointer flex items-center justify-between gap-2 transition">
+            <span class="font-medium truncate">${escapeHtml(title)}</span>
+            <span class="text-[11px] text-slate-400 shrink-0">記事</span>
+          </li>`
+        )
+        .join('');
+      el.suggestList.classList.remove('hidden');
+    }
+ 
+    async function fetchSuggestions(query) {
+      const q = query.trim();
+      if (q.length < 1) {
+        closeSuggestions();
+        return;
+      }
+      try {
+        const data = await wikiFetch(
+          {
+            action: 'opensearch',
+            search: q,
+            namespace: '0',
+            limit: '7'
+          },
+          null,
+          false
+        );
+        const titles = Array.isArray(data) && Array.isArray(data[1]) ? data[1] : [];
+        if (el.startInput.value.trim() === q && !state.isSearching) {
+          renderSuggestions(titles);
+        }
+      } catch {
+        // サジェスト失敗時は静かに無視
+      }
+    }
+ 
+    async function runRandomArticleSearch() {
+      if (state.isSearching) return;
+      try {
+        el.randomBtn.disabled = true;
+        const data = await wikiFetch(
+          {
+            action: 'query',
+            list: 'random',
+            rnnamespace: '0',
+            rnlimit: '1'
+          },
+          null,
+          false
+        );
+        const randomTitle = data?.query?.random?.[0]?.title;
+        if (randomTitle) {
+          el.startInput.value = randomTitle;
+          updateClearBtnVisibility();
+          await runSearch(randomTitle);
+        }
+      } catch (err) {
+        showMessage('error', 'ランダム記事の取得に失敗しました', err.message || '通信状況を確認してもう一度お試しください。');
+      } finally {
+        if (!state.isSearching) el.randomBtn.disabled = false;
+      }
+    }
+ 
+    function updateExcludeTokyoButtonUI() {
+      const isOn = state.excludeTokyo;
+      el.excludeTokyoBtn.setAttribute('aria-checked', String(isOn));
+ 
+      if (isOn) {
+        el.excludeTokyoBtn.className = 'inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl border text-sm font-semibold transition cursor-pointer select-none bg-verdy-50 border-verdy-300 text-verdy-800';
+        el.excludeTokyoTrack.className = 'relative inline-flex h-5 w-9 items-center rounded-full transition-colors bg-verdy-600';
+        el.excludeTokyoKnob.style.transform = 'translateX(18px)';
+      } else {
+        el.excludeTokyoBtn.className = 'inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl border text-sm font-semibold transition cursor-pointer select-none bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100';
+        el.excludeTokyoTrack.className = 'relative inline-flex h-5 w-9 items-center rounded-full transition-colors bg-slate-300';
+        el.excludeTokyoKnob.style.transform = 'translateX(2px)';
+      }
+    }
+ 
+    function updateClearBtnVisibility() {
+      if (el.startInput.value.length > 0) {
+        el.clearInputBtn.classList.remove('hidden');
+      } else {
+        el.clearInputBtn.classList.add('hidden');
+      }
+    }
+ 
+    function initPresets() {
+      el.presetContainer.innerHTML = PRESET_KEYWORDS.map(
+        (kw) => `
+          <button type="button" data-preset="${escapeHtml(kw)}"
+                  class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-verdy-100 hover:text-verdy-800 text-slate-700 text-xs sm:text-sm font-semibold transition cursor-pointer">
+            ${escapeHtml(kw)}
+          </button>`
+      ).join('');
+    }
+ 
+    // 履歴の読み込み・保存・描画
+    function loadHistory() {
+      try {
+        const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        state.history = Array.isArray(parsed) ? parsed.slice(0, 12) : [];
+      } catch {
+        state.history = [];
+      }
+      renderHistory();
+    }
+ 
+    function saveToHistory(result) {
+      const route = result.routes[0];
+      if (!route || route.length === 0) return;
+ 
+      const entry = {
+        mode: result.mode || 'association',
+        startTitle: result.startTitle,
+        clicks: Math.max(0, route.length - 1),
+        route,
+        excludeTokyo: result.excludeTokyo,
+        timestamp: Date.now()
+      };
+ 
+      state.history = [
+        entry,
+        ...state.history.filter(
+          (item) =>
+            !(
+              item.startTitle === entry.startTitle &&
+              item.mode === entry.mode &&
+              item.excludeTokyo === entry.excludeTokyo &&
+              (item.route || []).join('->') === route.join('->')
+            )
+        )
+      ].slice(0, 12);
+ 
+      try {
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(state.history));
+      } catch {
+        // localStorage利用不可環境では無視
+      }
+      renderHistory();
+    }
+ 
+    function formatHistoryTime(ts) {
+      try {
+        const d = new Date(ts);
+        const m = d.getMonth() + 1;
+        const day = d.getDate();
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${m}/${day} ${hh}:${mm}`;
+      } catch {
+        return '';
+      }
+    }
+ 
+    function renderHistory() {
+      if (!state.history || state.history.length === 0) {
+        el.historySection.classList.add('hidden');
+        return;
+      }
+ 
+      el.historySection.classList.remove('hidden');
+      el.historyList.innerHTML = state.history
+        .map((item, idx) => {
+          const isAssoc = item.mode === 'association';
+          const modePill = isAssoc
+            ? '<span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">連想モード</span>'
+            : '<span class="text-[10px] font-bold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">最短ルート</span>';
+          return `
+          <button type="button" data-history-idx="${idx}"
+                  class="w-full text-left py-3 px-2 -mx-2 rounded-xl hover:bg-slate-50 transition flex items-start justify-between gap-3 cursor-pointer">
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="font-bold text-sm text-slate-800">${escapeHtml(item.startTitle)}</span>
+                <span class="text-[11px] font-bold bg-verdy-100 text-verdy-800 px-2 py-0.5 rounded-full">${item.clicks}クリック</span>
+                ${modePill}
+                ${item.excludeTokyo ? '<span class="text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">「AKB48」除外</span>' : ''}
+              </div>
+              <p class="text-xs text-slate-500 mt-1 truncate">${escapeHtml((item.route || []).join(' → '))}</p>
+            </div>
+            <span class="text-[11px] text-slate-400 shrink-0 font-mono mt-0.5">${escapeHtml(formatHistoryTime(item.timestamp))}</span>
+          </button>`;
+        })
+        .join('');
+    }
+ 
+    // =========================================================================
+    // イベント登録
+    // =========================================================================
+ 
+    function bindEvents() {
+      el.modeAssociationBtn.addEventListener('click', () => setSearchMode('association'));
+      el.modeShortestBtn.addEventListener('click', () => setSearchMode('shortest'));
+ 
+      el.searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        runSearch(el.startInput.value);
+      });
+ 
+      el.startInput.addEventListener('input', () => {
+        updateClearBtnVisibility();
+        clearTimeout(state.suggestTimer);
+        const val = el.startInput.value;
+        state.suggestTimer = setTimeout(() => fetchSuggestions(val), 220);
+      });
+ 
+      el.startInput.addEventListener('keydown', (e) => {
+        if (el.suggestList.classList.contains('hidden') || state.suggestItems.length === 0) return;
+ 
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          state.suggestActiveIndex = (state.suggestActiveIndex + 1) % state.suggestItems.length;
+          highlightSuggestItem();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          state.suggestActiveIndex = (state.suggestActiveIndex - 1 + state.suggestItems.length) % state.suggestItems.length;
+          highlightSuggestItem();
+        } else if (e.key === 'Enter' && state.suggestActiveIndex >= 0) {
+          e.preventDefault();
+          const chosen = state.suggestItems[state.suggestActiveIndex];
+          el.startInput.value = chosen;
+          updateClearBtnVisibility();
+          closeSuggestions();
+          runSearch(chosen);
+        } else if (e.key === 'Escape') {
+          closeSuggestions();
+        }
+      });
+ 
+      el.clearInputBtn.addEventListener('click', () => {
+        el.startInput.value = '';
+        updateClearBtnVisibility();
+        closeSuggestions();
+        el.startInput.focus();
+      });
+ 
+      el.suggestList.addEventListener('click', (e) => {
+        const li = e.target.closest('li[data-suggest-idx]');
+        if (!li) return;
+        const idx = parseInt(li.dataset.suggestIdx, 10);
+        const title = state.suggestItems[idx];
+        if (title) {
+          el.startInput.value = title;
+          updateClearBtnVisibility();
+          closeSuggestions();
+          runSearch(title);
+        }
+      });
+ 
+      document.addEventListener('click', (e) => {
+        if (!el.suggestList.contains(e.target) && e.target !== el.startInput) {
+          closeSuggestions();
+        }
+      });
+ 
+      el.excludeTokyoBtn.addEventListener('click', () => {
+        state.excludeTokyo = !state.excludeTokyo;
+        updateExcludeTokyoButtonUI();
+        showToast(state.excludeTokyo ? '「AKB48」を除外：ON' : '「AKB48」を除外：OFF');
+ 
+        // すでに結果が表示されていて検索中でなければ、新設定で自動再検索
+        if (!state.isSearching && state.currentResult && state.currentResult.startTitle) {
+          runSearch(state.currentResult.startTitle);
+        }
+      });
+ 
+      el.randomBtn.addEventListener('click', () => {
+        runRandomArticleSearch();
+      });
+ 
+      el.presetContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-preset]');
+        if (!btn) return;
+        const kw = btn.dataset.preset;
+        el.startInput.value = kw;
+        updateClearBtnVisibility();
+        runSearch(kw);
+      });
+ 
+      el.cancelBtn.addEventListener('click', () => {
+        if (state.abortController) {
+          state.abortController.abort();
+        }
+      });
+ 
+      el.copyResultBtn.addEventListener('click', copyCurrentResult);
+      el.shareXBtn.addEventListener('click', shareResultOnX);
+ 
+      el.retryAssociationBtn.addEventListener('click', () => {
+        if (state.isSearching || !state.currentResult?.startTitle) return;
+        runSearch(state.currentResult.startTitle, {
+          forceMode: 'association',
+          avoidPreviousFirstHop: true
+        });
+      });
+ 
+      el.altRoutesButtons.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-route-idx]');
+        if (!btn || !state.currentResult) return;
+        const idx = parseInt(btn.dataset.routeIdx, 10);
+        if (!Number.isNaN(idx) && state.currentResult.routes[idx]) {
+          state.currentResult.selectedIndex = idx;
+          renderCurrentResult();
+        }
+      });
+ 
+      el.historyList.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-history-idx]');
+        if (!btn) return;
+        const idx = parseInt(btn.dataset.historyIdx, 10);
+        const item = state.history[idx];
+        if (!item) return;
+ 
+        el.startInput.value = item.startTitle;
+        updateClearBtnVisibility();
+        if (item.mode && state.searchMode !== item.mode) {
+          state.searchMode = item.mode;
+          updateSearchModeUI();
+        }
+        if (typeof item.excludeTokyo === 'boolean' && state.excludeTokyo !== item.excludeTokyo) {
+          state.excludeTokyo = item.excludeTokyo;
+          updateExcludeTokyoButtonUI();
+        }
+        runSearch(item.startTitle);
+      });
+ 
+      el.clearHistoryBtn.addEventListener('click', () => {
+        state.history = [];
+        try {
+          localStorage.removeItem(HISTORY_STORAGE_KEY);
+        } catch {
+          // 無視
+        }
+        renderHistory();
+        showToast('検索履歴をクリアしました');
+      });
+    }
+ 
+    function highlightSuggestItem() {
+      const nodes = el.suggestList.querySelectorAll('li[data-suggest-idx]');
+      nodes.forEach((node, idx) => {
+        if (idx === state.suggestActiveIndex) {
+          node.classList.add('bg-verdy-50', 'text-verdy-800');
+        } else {
+          node.classList.remove('bg-verdy-50', 'text-verdy-800');
+        }
+      });
+    }
+ 
+    // 起動処理
+    window.addEventListener('DOMContentLoaded', () => {
+      initPresets();
+      updateSearchModeUI();
+      updateExcludeTokyoButtonUI();
+      loadHistory();
+      bindEvents();
+      initGoalCache();
+    });
+  </script>
+ 
+ 
+</body></html>
