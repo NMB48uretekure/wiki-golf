@@ -57,7 +57,7 @@ a{color:inherit}
 .ibtn.x{color:var(--sub)}
 .st .via{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--teal);border-radius:999px;padding:0 7px;margin-left:6px}
 .rbox{border:1.5px solid var(--line);border-radius:16px;background:var(--soft)}
-.rrow{display:grid;grid-template-columns:52px minmax(0,1fr) 40px;align-items:center;gap:6px;padding:4px 8px 4px 14px;min-height:62px;border-radius:14px}
+.rrow{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:6px;padding:4px 8px 4px 14px;min-height:62px;border-radius:14px}
 .rrow:focus-within{background:var(--card)}
 .rlab{font-family:"M PLUS 1p",sans-serif;font-weight:800;font-size:15px;white-space:nowrap}
 .rlab.s{color:var(--red)}.rlab.v{color:var(--teal)}.rlab.g{color:var(--ink)}
@@ -65,7 +65,10 @@ a{color:inherit}
 .rrow .inp input::placeholder{color:var(--sub);opacity:.7}
 .rbtn{width:40px;height:40px;border-radius:50%;border:0;background:transparent;color:var(--sub);display:grid;place-items:center}
 .rbtn svg{width:22px;height:22px}
-.rbtn.x{border:1.5px solid var(--sub)}.rbtn.x svg{width:16px;height:16px}
+.rbtns{display:flex;gap:2px;align-items:center}
+.rbtn:disabled{opacity:.4}
+.rbtn.spin svg{animation:spin .8s linear infinite}
+.rbtn.x{border:1.5px solid var(--sub);width:34px;height:34px}.rbtn.x svg{width:16px;height:16px}
 .rsep{position:relative;border-top:1px solid var(--line);margin:0 12px}
 .rsep .ins{position:absolute;right:52px;top:-17px;height:34px;padding:0 14px;border-radius:999px;border:0;background:var(--teal);color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:3px;z-index:2}
 .rsep .ins svg{width:14px;height:14px}
@@ -309,8 +312,8 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
       <div id="viaList"></div>
       <div class="rrow">
         <label class="rlab g" for="goalIn">到着</label>
-        <div class="inp"><input id="goalIn" placeholder="たどり着きたい言葉" enterkeyhint="search"><ul class="sug" id="goalSug" role="listbox" hidden></ul></div>
-        <span></span>
+        <div class="inp"><input id="goalIn" placeholder="空欄でランダム" enterkeyhint="search"><ul class="sug" id="goalSug" role="listbox" hidden></ul></div>
+        <button type="button" class="rbtn" id="goalRnd" aria-label="ランダムな到着の言葉を入れる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.3" fill="currentColor"/><circle cx="16" cy="16" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg></button>
       </div>
     </div>
 
@@ -646,6 +649,22 @@ async function randomTitle(signal) {
   return null;
 }
 
+// 到着・経由地向け：ほかの記事からよくリンクされている記事をランダムに選ぶ（たどり着けない記事を避ける）
+async function randomHub(signal) {
+  let best = null, bestN = -1;
+  for (let round = 0; round < 3; round++) {
+    const d = await api({ action: 'query', list: 'random', rnnamespace: '0', rnlimit: '10' }, signal, false);
+    const titles = (d?.query?.random || []).map((r) => norm(r.title)).filter((t) => !isDateOrList(t));
+    if (!titles.length) continue;
+    const counts = new Map(titles.map((t) => [t, 0]));
+    const l = await api({ action: 'query', titles: titles.join('|'), prop: 'linkshere', lhnamespace: '0', lhshow: '!redirect', lhlimit: 'max', lhprop: 'title' }, signal, false);
+    for (const p of l?.query?.pages || []) counts.set(norm(p.title), (p.linkshere || []).length);
+    for (const [t, n] of counts) if (n > bestN) { best = t; bestN = n; }
+    if (bestN >= 20) break;
+  }
+  return best;
+}
+
 // ---------- 最短ルート探索（双方向） ----------
 // 戻り値: { routes: string[][], hops } または null
 async function shortestRoutes(start, goal, opt, signal) {
@@ -882,7 +901,7 @@ async function detourRoute(start, goal, opt, signal) {
   return null;
 }
 
-if (typeof module !== 'undefined') module.exports = { E, routeVia, api, extractBodyLinks, shortestRoutes, detourRoute, resolveTitle, fetchAliases, fetchClean, canonOf, randomTitle, isDateOrList };
+if (typeof module !== 'undefined') module.exports = { E, routeVia, randomHub, api, extractBodyLinks, shortestRoutes, detourRoute, resolveTitle, fetchAliases, fetchClean, canonOf, randomTitle, isDateOrList };
 
 
 const $ = (id) => document.getElementById(id);
@@ -912,11 +931,15 @@ function renderMode() {
 $('tabShort').onclick = () => { st.mode = 'shortest'; renderMode(); };
 $('tabChal').onclick = () => { st.mode = 'challenge'; renderMode(); };
 $('dateSw').onclick = () => { st.avoidDates = !st.avoidDates; $('dateSw').setAttribute('aria-checked', String(st.avoidDates)); };
-$('startRnd').onclick = async () => {
-  try { $('startRnd').disabled = true; const t = await randomTitle(); if (t) $('startIn').value = t; }
+async function fillRandom(input, btn, fn) {
+  if (!input || btn.disabled) return;
+  btn.disabled = true; btn.classList.add('spin');
+  try { const t = await fn(); if (t) input.value = t; }
   catch { toast('ランダムな言葉を取得できませんでした'); }
-  finally { $('startRnd').disabled = false; }
-};
+  finally { btn.disabled = false; btn.classList.remove('spin'); }
+}
+$('startRnd').onclick = () => fillRandom($('startIn'), $('startRnd'), randomTitle);
+$('goalRnd').onclick = () => fillRandom($('goalIn'), $('goalRnd'), randomHub);
 
 // ----- 入力候補 -----
 function attachSuggest(input, list) {
@@ -958,6 +981,7 @@ attachSuggest($('goalIn'), $('goalSug'));
 const MAX_VIA = 3;
 const SWAP_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M12 3l-4 4M12 3l4 4M12 21l-4-4M12 21l4-4"/></svg>';
 const PLUS_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+const DICE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.3" fill="currentColor"/><circle cx="16" cy="16" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg>';
 const X_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 function viaInputs() { return [...document.querySelectorAll('#viaList input')]; }
 function viaValues() { return viaInputs().map((i) => i.value.trim()).filter(Boolean); }
@@ -968,7 +992,7 @@ function renderVias(list, focusAt = -1) {
   list.forEach((v, i) => {
     html += `<div class="rrow"><label class="rlab v" for="via${i}">${list.length > 1 ? '経由' + (i + 1) : '経由'}</label>
       <div class="inp"><input id="via${i}" placeholder="経由する言葉" enterkeyhint="next"><ul class="sug" role="listbox" hidden></ul></div>
-      <button type="button" class="rbtn x" data-del="${i}" aria-label="この経由地を消す">${X_SVG}</button></div>` + sep(i + 1);
+      <div class="rbtns"><button type="button" class="rbtn" data-rnd="${i}" aria-label="ランダムな経由地を入れる">${DICE_SVG}</button><button type="button" class="rbtn x" data-del="${i}" aria-label="この経由地を消す">${X_SVG}</button></div></div>` + sep(i + 1);
   });
   $('viaList').innerHTML = html;
   viaInputs().forEach((input, i) => {
@@ -983,6 +1007,8 @@ function addVia(value = '') { const l = currentVias(); if (l.length < MAX_VIA) {
 $('viaList').addEventListener('click', (e) => {
   const ins = e.target.closest('.ins');
   if (ins) { const l = currentVias(); const at = +ins.dataset.at; l.splice(at, 0, ''); renderVias(l, at); return; }
+  const rnd = e.target.closest('[data-rnd]');
+  if (rnd) { fillRandom($('via' + rnd.dataset.rnd), rnd, randomHub); return; }
   const del = e.target.closest('[data-del]');
   if (del) { const l = currentVias(); l.splice(+del.dataset.del, 1); renderVias(l); return; }
   if (e.target.closest('#swapBtn')) {
@@ -1024,8 +1050,7 @@ function parseExcl() {
 async function search() {
   if (st.busy) return;
   if (st.mode === 'challenge') return startChallenge();
-  const goalQ = $('goalIn').value.trim();
-  if (!goalQ) { msg('warn', '到着の言葉を入れてください', '「到着」の欄に、たどり着きたい言葉を入れてから探してください。'); $('goalIn').focus(); return; }
+  let goalQ = $('goalIn').value.trim();
   st.ctrl = new AbortController();
   const signal = st.ctrl.signal;
   const mode = st.mode, steps = st.steps;
@@ -1050,6 +1075,7 @@ async function search() {
     $('startIn').value = start;
     previewStart(start);
     E.hooks.progress('到着の記事を確認しています…', '準備');
+    if (!goalQ) { goalQ = await randomHub(signal); $('goalIn').value = goalQ; }
     const g = await resolveTitle(goalQ, signal);
     if (!g) { msg('warn', '到着の記事が見つかりません', `「${goalQ}」に当たる日本語版Wikipediaの記事が見つかりませんでした。別の言い方で試してください。`); return; }
     const goal = g.title;
@@ -1117,6 +1143,7 @@ async function fetchInfo(titles) {
 async function show(r) {
   E.hooks.progress('見つかったルートの記事の説明を読み込み中…', '表示準備');
   await fetchInfo(r.routes.flat());
+  await fetchIds([r.start, ...(r.vias || []), r.goal]);
   st.result = r; st.sel = 0;
   render();
   saveHist(r);
@@ -1163,9 +1190,27 @@ function pageUrl() {
   if (location.protocol.startsWith('http') && !/localhost|127\.0\.0\.1/.test(location.hostname)) return location.origin + location.pathname;
   return m;
 }
+// 記事のページ番号（pageid）を36進数にして短いURLを作る（例 ?r=1a2b.3c4d）
+const PID = new Map();
+async function fetchIds(titles) {
+  const need = [...new Set(titles)].filter((t) => t && !PID.has(t));
+  for (let i = 0; i < need.length; i += 50) {
+    const list = need.slice(i, i + 50);
+    try {
+      const d = await api({ action: 'query', titles: list.join('|'), redirects: '1' }, null, false);
+      const back = new Map();
+      for (const x of d?.query?.normalized || []) back.set(norm(x.to), norm(x.from));
+      for (const x of d?.query?.redirects || []) back.set(norm(x.to), back.get(norm(x.from)) || norm(x.from));
+      for (const p of d?.query?.pages || []) if (p.pageid) { const tt = norm(p.title); PID.set(tt, p.pageid); if (back.has(tt)) PID.set(back.get(tt), p.pageid); }
+    } catch { /* 取れなければ長いURLにする */ }
+  }
+}
 function shareUrlFor(start, vias, goal) {
   const base = pageUrl();
   if (!base) return '';
+  const all = [start, ...(vias || []), goal];
+  const ids = all.map((t) => PID.get(t));
+  if (ids.every(Boolean)) return base + '?r=' + ids.map((n) => n.toString(36)).join('.');
   const q = new URLSearchParams({ s: start, g: goal });
   for (const v of vias || []) q.append('v', v);
   return base + '?' + q.toString();
@@ -1440,26 +1485,27 @@ function updBar() {
 }
 
 async function startChallenge() {
-  const goalQ = $('goalIn').value.trim();
-  if (!goalQ) { msg('warn', '到着の言葉を入れてください', '「到着」の欄に、目指す言葉を入れてから始めてください。'); $('goalIn').focus(); return; }
+  let goalQ = $('goalIn').value.trim();
   st.busy = true; $('goBtn').disabled = true; $('msg').hidden = true;
   C.ctrl?.abort();
   C.ctrl = new AbortController();
   const signal = C.ctrl.signal;
   Object.assign(C, { on: true, done: false, best: null, bestRoutes: null, trail: [] });
   $('chal').hidden = false; document.body.style.overflow = 'hidden';
-  $('cDone').hidden = true; $('cBox').innerHTML = ''; $('cGoalRow').textContent = '目標：' + goalQ; setBest('…'); $('cNow').textContent = '0';
+  $('cDone').hidden = true; $('cBox').innerHTML = ''; $('cGoalRow').textContent = goalQ ? '目標：' + goalQ : ''; setBest('…'); $('cNow').textContent = '0';
   try {
     let start;
     const sq = $('startIn').value.trim();
     if (!sq) start = await randomTitle(signal);
     else { const s = await resolveTitle(sq, signal); if (!s) throw new Error(`「${sq}」の記事が見つかりませんでした`); start = s.title; }
+    if (!goalQ) { goalQ = await randomHub(signal); $('cGoalRow').textContent = '目標：' + goalQ; }
     const g = await resolveTitle(goalQ, signal);
     if (!g) throw new Error(`「${goalQ}」の記事が見つかりませんでした`);
     C.start = start; C.goal = g.title;
     $('startIn').value = start; $('goalIn').value = g.title;
     C.vias = await resolveVias(signal);
     C.points = [start, ...C.vias, g.title]; C.next = 1;
+    fetchIds(C.points);
     await fetchAliases(C.points.slice(1), signal);
     updGoalRow();
     C.trail = [start];
@@ -1604,7 +1650,21 @@ async function copyText(text) {
 // シェアされたURL（?s=出発&g=到着）から開いたら、同じお題をチャレンジ欄にセット
 {
   const q = new URLSearchParams(location.search);
-  if (q.get('g')) {
+  const setTask = (s, vias, g) => {
+    $('startIn').value = s || ''; $('goalIn').value = g; setVias(vias.slice(0, MAX_VIA));
+    st.mode = 'challenge'; renderMode();
+    toast('お題がセットされました。「チャレンジ開始」で挑戦！');
+  };
+  if (q.get('r')) {
+    const ids = q.get('r').split('.').map((x) => parseInt(x, 36)).filter((n) => n > 0);
+    if (ids.length >= 2) {
+      api({ action: 'query', pageids: ids.join('|') }, null, false).then((d) => {
+        const byId = new Map((d?.query?.pages || []).map((p) => [p.pageid, norm(p.title)]));
+        const ts = ids.map((n) => byId.get(n));
+        if (ts.every(Boolean)) { ts.forEach((t, i) => PID.set(t, ids[i])); setTask(ts[0], ts.slice(1, -1), ts[ts.length - 1]); }
+      }).catch(() => toast('お題を読み込めませんでした'));
+    }
+  } else if (q.get('g')) {
     $('goalIn').value = q.get('g');
     $('startIn').value = q.get('s') || '';
     setVias(q.getAll('v').slice(0, MAX_VIA));
