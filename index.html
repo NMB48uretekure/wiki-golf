@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ウィキ乗り換え案内</title>
-<meta name="description" content="どんな言葉からでも、Wikipediaの本文リンクだけをたどって指定した言葉へ。最短ルート検索と、自分でたどって打数を競うチャレンジができます。">
+<title>Wikipediaゴルフ</title>
+<meta name="description" content="どんな言葉からでも、Wikipediaの本文リンクだけをたどって指定した言葉へ。自分でリンクをたどって打数を競うチャレンジと、最短ルート検索ができます。">
 <meta property="og:type" content="website">
-<meta property="og:title" content="ウィキ乗り換え案内">
+<meta property="og:title" content="Wikipediaゴルフ">
 <meta property="og:url" content="https://nmb48uretekure.github.io/wiki-golf/">
-<meta property="og:description" content="Wikipediaの本文リンクだけで、好きな言葉から好きな言葉へ。最短ルート検索と打数チャレンジ。">
+<meta property="og:description" content="Wikipediaのリンクだけで目的の言葉まで何打で行ける？ 最短ルートと答え合わせできるWikipediaゴルフ。">
 <meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -260,7 +260,7 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
     <path d="M60 30 C150 40 170 140 250 140 S380 200 500 190" fill="none" stroke="#0f9aa8" stroke-width="9" stroke-linecap="round" opacity=".85"/>
     <g fill="#16213e" stroke="#fff" stroke-width="5"><circle cx="10" cy="180" r="10"/><circle cx="250" cy="60" r="10"/><circle cx="510" cy="40" r="10"/><circle cx="250" cy="140" r="10"/><circle cx="60" cy="30" r="10"/><circle cx="500" cy="190" r="10"/></g>
   </svg>
-  <h1>ウィキ乗り換え案内</h1>
+  <h1>Wikipediaゴルフ</h1>
 </header>
 
 <main class="wrap">
@@ -318,8 +318,8 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
     </div>
 
     <div class="tabs" role="tablist" aria-label="検索の種類">
-      <button type="button" role="tab" id="tabShort" aria-selected="true">最短ルート<small>クリック数が一番少ない道</small></button>
-      <button type="button" role="tab" id="tabChal" aria-selected="false">チャレンジ<small>自分でたどって打数を競う</small></button>
+      <button type="button" role="tab" id="tabChal" aria-selected="true">チャレンジ<small>自分でたどって打数を競う</small></button>
+      <button type="button" role="tab" id="tabShort" aria-selected="false">最短ルート<small>クリック数が一番少ない道</small></button>
     </div>
 
 
@@ -342,8 +342,8 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
     <details>
       <summary>しくみとルール</summary>
       <p><b>本文リンクだけ</b>：脚注・出典・関連項目・外部リンクの節、記事下部の折りたたみ一覧表（ナビゲーションボックス）のリンクは使いません。見つかったルートは、全区間の記事本文を実際に読み直して確認してから表示します。</p>
-      <p><b>最短ルート</b>：出発側（記事内のリンク）と到着側（その記事へリンクしている記事）の両方から広げて、出会った所でつなぎます。調べた範囲の中で一番クリック数の少ないルートを出します（Wikipedia全体を調べ尽くすわけではないので、まれにもっと短い道が残っていることがあります）。</p>
       <p><b>チャレンジ</b>：自分で記事の中のリンクを押して到着を目指します。押した回数が「打数」で、画面の下に今の打数と、そのルートの最短打数が出ます。「戻る」も1打に数えます。脚注・一覧表など本文以外のリンクは押せません。</p>
+      <p><b>最短ルート</b>：出発側（記事内のリンク）と到着側（その記事へリンクしている記事）の両方から広げて、出会った所でつなぎます。調べた範囲の中で一番クリック数の少ないルートを出します（Wikipedia全体を調べ尽くすわけではないので、まれにもっと短い道が残っていることがあります）。</p>
       <p><b>確実に着くための工夫</b>：年・日付の記事を外して見つからない場合は外さずに探し直し、ランダムな出発で行き止まりの場合は別の言葉で出発し直します。到着の記事にどこからも本文リンクが無い場合だけは、たどり着けません。</p>
     </details>
   </section>
@@ -909,7 +909,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const wikiUrl = (t) => 'https://ja.wikipedia.org/wiki/' + encodeURIComponent(String(t).replace(/ /g, '_'));
 const HKEY = 'wiki_norikae_history_v1';
 
-const st = { mode: 'shortest', steps: 3, avoidDates: true, busy: false, ctrl: null, t0: 0, timer: null, result: null, sel: 0, hist: [], info: new Map(), lastQuery: null };
+const st = { mode: 'challenge', steps: 3, avoidDates: true, busy: false, ctrl: null, t0: 0, timer: null, result: null, sel: 0, hist: [], info: new Map(), lastQuery: null };
 
 E.hooks.progress = (text, phase) => { if (text) { $('progText').textContent = text; const v = document.getElementById('vs1'); if (v) v.textContent = text; } if (phase) $('phase').textContent = phase; };
 E.hooks.metrics = (m) => { $('mCalls').textContent = E.calls; if (m) { $('mF').textContent = m.fwd.toLocaleString(); $('mB').textContent = m.bwd.toLocaleString(); } const v = document.getElementById('vs2'); if (v) v.textContent = `通信 ${E.calls}回 ・ 出発側 ${$('mF').textContent}記事 ・ 到着側 ${$('mB').textContent}記事`; };
