@@ -141,31 +141,32 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--navy);color:#fff;border-radius:999px;padding:10px 18px;font-size:14px;z-index:50}
 .b-play{background:#fff;color:#16213e;font-size:15px!important;min-height:48px!important}
 .b-play svg{width:16px;height:16px}
-.viewer{position:fixed;inset:0;z-index:40;background:rgb(8 12 28 / .62);display:grid;place-items:center;padding:14px;animation:vin .2s ease-out}
+.viewer{margin-bottom:14px;animation:vin .25s ease-out}
 @keyframes vin{from{opacity:0}}
-.vwin{width:min(560px,100%);height:min(74vh,680px);background:var(--navy);color:#fff;border-radius:20px;display:flex;flex-direction:column;padding:10px;box-shadow:0 20px 50px rgb(0 0 0 / .45)}
+.vwin{width:100%;background:var(--navy);color:#fff;border-radius:16px;display:flex;flex-direction:column;padding:8px;box-shadow:0 20px 50px rgb(0 0 0 / .45)}
 .vsearch{text-align:center;padding:60px 10px;color:#54595d}
 .vsearch .spin{width:46px;height:46px;margin:0 auto 16px;border-radius:50%;border:5px solid #eaecf0;border-top-color:var(--red);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .vsearch p{margin:6px 0}.vsearch .vs1{font-weight:700;color:#202122}.vsearch .vs2{font-size:13px}
 .vctl button:disabled{opacity:.35}
 .vhead{display:flex;align-items:center;gap:10px}
-.vhead button{width:44px;height:44px;border-radius:12px;border:1px solid rgb(255 255 255 / .25);background:transparent;color:#fff;font-size:22px;line-height:1}
-.vstep{font-family:"M PLUS 1p",sans-serif;font-weight:800;font-size:18px;line-height:1.3}
-.vstep small{display:block;font-weight:500;font-size:12px;opacity:.8;font-family:"Noto Sans JP",sans-serif}
-.vchips{display:flex;gap:4px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
-.vchips button{flex:none;border:0;border-radius:999px;padding:4px 10px;font-size:12px;background:rgb(255 255 255 / .12);color:#fff;min-height:30px}
+.vhead button{flex:none;width:36px;height:36px;border-radius:10px;border:1px solid rgb(255 255 255 / .25);background:transparent;color:#fff;font-size:18px;line-height:1}
+.vstep{font-family:"M PLUS 1p",sans-serif;font-weight:700;font-size:14px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vstep small{display:none;font-weight:500;font-size:12px;opacity:.8;font-family:"Noto Sans JP",sans-serif}
+.vchips{display:flex;gap:4px;overflow-x:auto;padding:6px 0;scrollbar-width:none}
+.vchips:empty{display:none}
+.vchips button{flex:none;border:0;border-radius:999px;padding:3px 9px;font-size:11px;background:rgb(255 255 255 / .12);color:#fff;min-height:30px}
 .vchips button.on{background:var(--red)}.vchips button.done{background:rgb(255 255 255 / .3)}
-.vframe{flex:1;min-height:0;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 10px 30px rgb(0 0 0 / .35)}
-.vurl{background:#eaecf0;color:#54595d;font-size:12px;padding:7px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:ui-monospace,Menlo,monospace}
-.vbox{flex:1;overflow-y:auto;position:relative;background:#fff;color:#202122;padding:12px 14px 40vh;font:15px/1.7 "Noto Sans JP",sans-serif;-webkit-overflow-scrolling:touch}
-.vbox .vt{font-family:"Noto Serif JP",serif;font-weight:500;font-size:26px;border-bottom:1px solid #a2a9b1;margin:0 0 10px;padding-bottom:4px;color:#202122}
-.vbox h2{font-size:20px;border-bottom:1px solid #a2a9b1;margin:18px 0 8px;font-weight:500}
-.vbox h3{font-size:17px;margin:14px 0 6px}
+.vframe{height:min(50vh,440px);display:flex;flex-direction:column;border-radius:10px;margin-top:6px;overflow:hidden;background:#fff;box-shadow:0 10px 30px rgb(0 0 0 / .35)}
+.vurl{background:#eaecf0;color:#54595d;font-size:11px;padding:5px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:ui-monospace,Menlo,monospace}
+.vbox{flex:1;overflow-y:auto;position:relative;background:#fff;color:#202122;padding:10px 12px 30vh;font:13px/1.65 "Noto Sans JP",sans-serif;-webkit-overflow-scrolling:touch}
+.vbox .vt{font-family:"Noto Serif JP",serif;font-weight:500;font-size:19px;line-height:1.35;border-bottom:1px solid #a2a9b1;margin:0 0 10px;padding-bottom:4px;color:#202122}
+.vbox h2{font-size:16px;border-bottom:1px solid #a2a9b1;margin:18px 0 8px;font-weight:500}
+.vbox h3{font-size:14px;margin:14px 0 6px}
 .vbox p{margin:0 0 10px}
 .vbox a{color:#3366cc;text-decoration:none;cursor:default}
 .vbox img{max-width:100%;height:auto}
-.vbox table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;font-size:13px;margin:0 0 10px}
+.vbox table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;font-size:11px;margin:0 0 10px}
 .vbox .infobox{float:none!important;width:100%!important;margin:0 0 12px!important;background:#f8f9fa;border:1px solid #a2a9b1}
 .vbox td,.vbox th{border:1px solid #eaecf0;padding:3px 6px;vertical-align:top}
 .vbox figure,.vbox .thumb{margin:0 0 10px;float:none!important}
@@ -177,14 +178,15 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
 @keyframes tap{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.8);opacity:0}}
 .vbox.fade{opacity:.15;transition:opacity .25s}
 .vload{color:#54595d;padding:30px 0;text-align:center}
-.vcap{min-height:48px;padding:10px 4px 4px;font-weight:700;font-size:15px;line-height:1.4}
+.vcap{padding:8px 4px 2px;font-weight:700;font-size:13px;line-height:1.4}
+.vcap:empty{display:none}
 .vcap b{color:#ffe066}
-.vctl{display:grid;grid-template-columns:1fr 1.4fr 1fr auto;gap:8px}
-.vctl button{min-height:48px;border-radius:12px;border:1px solid rgb(255 255 255 / .25);background:rgb(255 255 255 / .08);color:#fff;font-weight:700;font-size:15px}
+.vctl{display:grid;grid-template-columns:1fr 1.4fr 1fr auto;gap:6px;margin-top:6px}
+.vctl button{min-height:40px;border-radius:10px;font-size:13px!important;border:1px solid rgb(255 255 255 / .25);background:rgb(255 255 255 / .08);color:#fff;font-weight:700;font-size:15px}
 .vctl #vPlay{background:var(--red);border-color:var(--red)}
 .vctl #vSpeed{padding:0 12px}
 .arrive{text-align:center;padding:20px 0 10px}
-.arrive b{display:inline-block;background:var(--red);color:#fff;border-radius:999px;padding:6px 18px;font-family:"M PLUS 1p",sans-serif;font-size:20px}
+.arrive b{display:inline-block;background:var(--red);color:#fff;border-radius:999px;padding:4px 14px;font-family:"M PLUS 1p",sans-serif;font-size:15px}
 @media(prefers-reduced-motion:reduce){.vbox .hit,.tap{animation:none}}
 [hidden]{display:none!important}
 :focus-visible{outline:3px solid var(--teal);outline-offset:2px}
@@ -204,6 +206,14 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
 </header>
 
 <main class="wrap">
+  <section class="viewer" id="viewer" hidden aria-label="ルートの再生"><div class="vwin">
+  <div class="vhead"><button type="button" id="vClose" aria-label="閉じる">×</button><div class="vstep" id="vStep"></div></div>
+  <div class="vchips" id="vChips"></div>
+  <div class="vframe"><div class="vurl" id="vUrl"></div><div class="vbox" id="vBox"></div></div>
+  <div class="vcap" id="vCap" aria-live="polite"></div>
+  <div class="vctl"><button type="button" id="vPrev">前の記事</button><button type="button" id="vPlay">一時停止</button><button type="button" id="vNext">次の記事</button><button type="button" id="vSpeed">1倍</button></div>
+</div></section>
+
   <section class="card prog" id="prog" hidden aria-live="polite">
     <button type="button" class="cancel" id="cancelBtn">やめる</button>
     <span class="ph" id="phase">準備中</span><span class="tm" id="elapsed">0.0秒</span>
@@ -288,13 +298,6 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
   </section>
 </main>
 <footer>データ：<a href="https://ja.wikipedia.org/" target="_blank" rel="noopener noreferrer">日本語版Wikipedia</a>（CC BY-SA 4.0）</footer>
-<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="ルートの再生"><div class="vwin">
-  <div class="vhead"><button type="button" id="vClose" aria-label="閉じる">×</button><div class="vstep" id="vStep"></div></div>
-  <div class="vchips" id="vChips"></div>
-  <div class="vframe"><div class="vurl" id="vUrl"></div><div class="vbox" id="vBox"></div></div>
-  <div class="vcap" id="vCap" aria-live="polite"></div>
-  <div class="vctl"><button type="button" id="vPrev">前の記事</button><button type="button" id="vPlay">一時停止</button><button type="button" id="vNext">次の記事</button><button type="button" id="vSpeed">1倍</button></div>
-</div></div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -871,7 +874,7 @@ attachSuggest($('goalIn'), $('goalSug'));
 function startProg() {
   window.scrollTo({ top: 0 });
   st.busy = true; E.calls = 0;
-  $('goBtn').disabled = true; $('prog').hidden = false; $('msg').hidden = true; $('res').hidden = true; $('live').hidden = true;
+  $('goBtn').disabled = true; $('msg').hidden = true; $('res').hidden = true; $('live').hidden = true;
   $('mCalls').textContent = '0'; $('mF').textContent = '0'; $('mB').textContent = '0';
   st.t0 = performance.now();
   clearInterval(st.timer);
@@ -1214,7 +1217,7 @@ function setCtl(on) { for (const id of ['vPrev', 'vPlay', 'vNext', 'vSpeed']) $(
 function openViewerLoading() {
   V.token++; V.loading = true; V.playing = false;
   $('viewer').hidden = false;
-  document.body.style.overflow = 'hidden';
+  window.scrollTo({ top: 0 });
   V.shown = null;
   $('vStep').innerHTML = '';
   $('vChips').innerHTML = '';
@@ -1249,16 +1252,17 @@ async function previewStart(title) {
 async function openViewer() {
   const r = st.result; if (!r) return;
   V.loading = false;
+  $('res').hidden = true;
   document.querySelector('.vctl').hidden = false;
   setCtl(true);
   V.route = r.routes[st.sel] || r.routes[0];
   V.playing = true;
   $('viewer').hidden = false;
-  document.body.style.overflow = 'hidden';
+  window.scrollTo({ top: 0 });
   try { await fetchAliases(V.route); } catch { /* 別名が取れなくても続ける */ }
   vGoto(0);
 }
-function closeViewer() { V.token++; V.playing = false; V.loading = false; V.shown = null; $('viewer').hidden = true; document.body.style.overflow = ''; }
+function closeViewer() { V.token++; V.playing = false; V.loading = false; V.shown = null; $('viewer').hidden = true; if (st.result && !st.busy) $('res').hidden = false; }
 $('playBtn').onclick = openViewer;
 $('vClose').onclick = () => { if (V.loading && st.busy) st.ctrl?.abort(); closeViewer(); };
 $('vPlay').onclick = () => {
