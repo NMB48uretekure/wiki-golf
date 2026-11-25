@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ウィキ乗り換え案内</title>
-<meta name="description" content="どんな言葉からでも、Wikipediaの本文リンクだけをたどって指定した言葉へ。最短ルートと寄り道ルートを検索できます。">
+<meta name="description" content="どんな言葉からでも、Wikipediaの本文リンクだけをたどって指定した言葉へ。最短ルート検索と、自分でたどって打数を競うチャレンジができます。">
 <meta property="og:type" content="website">
 <meta property="og:title" content="ウィキ乗り換え案内">
-<meta property="og:description" content="Wikipediaの本文リンクだけで、好きな言葉から好きな言葉へ。最短ルートと寄り道ルート。">
+<meta property="og:description" content="Wikipediaの本文リンクだけで、好きな言葉から好きな言葉へ。最短ルート検索と打数チャレンジ。">
 <meta property="og:url" content="https://nmb48uretekure.github.io/nmb48-route-/">
 <meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,7 +59,7 @@ a{color:inherit}
 .tabs button small{display:block;font-weight:500;font-size:12px;color:var(--sub)}
 .tabs button[aria-selected=true]{background:var(--card);box-shadow:0 2px 8px rgb(0 0 0 / .12)}
 .tabs button[aria-selected=true] small{color:inherit}
-#tabShort[aria-selected=true]{color:var(--red)}#tabDetour[aria-selected=true]{color:var(--teal)}
+#tabShort[aria-selected=true]{color:var(--red)}#tabChal[aria-selected=true]{color:var(--teal)}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
 .seg{display:flex;gap:4px}
 .seg button{min-width:44px;height:40px;border-radius:10px;border:1.5px solid var(--line);background:var(--soft);font-weight:700}
@@ -180,6 +180,10 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
 .vload{color:#54595d;padding:30px 0;text-align:center}
 .vcap{padding:8px 4px 2px;font-weight:700;font-size:13px;line-height:1.4}
 .vcap:empty{display:none}
+.vstat{margin-left:auto;align-self:flex-end;flex:none;font-size:12px;font-weight:700;white-space:nowrap;padding-bottom:2px}
+.vstat:after{content:'';display:inline-block;width:2.2em;text-align:left;animation:dots 1.2s steps(4,end) infinite}
+@keyframes dots{0%{content:''}25%{content:'・'}50%{content:'・・'}75%{content:'・・・'}}
+@media(prefers-reduced-motion:reduce){.vstat:after{content:'・・・';animation:none}}
 .vbox .vfrom{font-size:12px;color:#54595d;margin:-6px 0 10px}
 .vcap b{color:#ffe066}
 .vctl{display:grid;grid-template-columns:1fr 1.4fr 1fr auto;gap:6px;margin-top:6px}
@@ -189,6 +193,32 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
 .arrive{text-align:center;padding:20px 0 10px}
 .arrive b{display:inline-block;background:var(--red);color:#fff;border-radius:999px;padding:4px 14px;font-family:"M PLUS 1p",sans-serif;font-size:15px}
 @media(prefers-reduced-motion:reduce){.vbox .hit,.tap{animation:none}}
+.chal{position:fixed;inset:0;z-index:45;background:#fff;display:flex;flex-direction:column}
+.chal .vbox{padding:10px 14px 24px;font-size:15px}
+.chal .vbox a[data-ok]{cursor:pointer;text-decoration:underline;text-decoration-color:rgb(51 102 204 / .35);text-underline-offset:3px}
+.chal .vbox a:not([data-ok]){color:inherit}
+.chal .vbox a[data-ok]:active{background:#ffe066}
+.cbar{background:var(--navy);color:#fff;padding:8px 12px max(8px,env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;box-shadow:0 -4px 16px rgb(0 0 0 / .2)}
+.cnow{font-family:"M PLUS 1p",sans-serif;font-weight:800;font-size:34px;line-height:1;font-variant-numeric:tabular-nums}
+.cnow small{font-size:15px;margin-left:2px}
+.cbest{font-weight:700;font-size:14px;color:#c9d0e4;white-space:nowrap;border-left:1px solid rgb(255 255 255 / .25);padding-left:12px}
+.cbest b{color:#fff;font-size:20px;font-family:"M PLUS 1p",sans-serif}
+.cgoal{order:9;flex-basis:100%;font-size:12px;color:#c9d0e4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cgoal b{color:#fff}
+.cbar button{min-height:40px;border-radius:10px;border:1px solid rgb(255 255 255 / .25);background:rgb(255 255 255 / .08);color:#fff;font-weight:700;font-size:13px;padding:0 10px}
+.cbar button:disabled{opacity:.35}
+.chal .vbox.fade{opacity:.35}
+.cdone{position:absolute;inset:0;background:rgb(8 12 28 / .55);display:grid;place-items:center;padding:16px}
+.ccard{background:var(--card);color:var(--ink);border-radius:18px;padding:20px;width:min(440px,100%);max-height:90%;overflow:auto;text-align:center}
+.ccard h2{margin:0;font-size:26px;color:var(--red)}
+.ccard .cbig{font-family:"M PLUS 1p",sans-serif;font-weight:800;font-size:54px;line-height:1.1;margin:6px 0 0}
+.ccard .cbig small{font-size:20px}
+.ccard .ccmp{margin:4px 0 0;font-weight:700}
+.ccard .ctrail{margin:12px 0 0;font-size:13px;color:var(--sub);text-align:left;background:var(--soft);border-radius:10px;padding:10px;overflow-wrap:anywhere}
+.ccard .cbtns{display:grid;gap:8px;margin-top:14px}
+.ccard .cbtns button{min-height:46px;border-radius:12px;border:0;font-weight:700;font-size:15px}
+.ccard .cx{display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:12px;background:#000;color:#fff;font-weight:700;font-size:15px;text-decoration:none}
+.ccard .p1{background:var(--red);color:#fff}.ccard .p2{background:var(--teal);color:#fff}.ccard .p3{background:var(--chip)}
 [hidden]{display:none!important}
 :focus-visible{outline:3px solid var(--teal);outline-offset:2px}
 @media(max-width:600px){.top svg.map{opacity:.3}}
@@ -203,12 +233,12 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
     <g fill="#16213e" stroke="#fff" stroke-width="5"><circle cx="10" cy="180" r="10"/><circle cx="250" cy="60" r="10"/><circle cx="510" cy="40" r="10"/><circle cx="250" cy="140" r="10"/><circle cx="60" cy="30" r="10"/><circle cx="500" cy="190" r="10"/></g>
   </svg>
   <h1>ウィキ乗り換え案内</h1>
-  <p>好きな言葉から好きな言葉へ。Wikipediaの本文リンクだけを乗り継いで、最短ルートか寄り道ルートを探します。</p>
+  <p>好きな言葉から好きな言葉へ。Wikipediaの本文リンクだけを乗り継いで、最短ルートを探すか、自分でたどって打数に挑戦します。</p>
 </header>
 
 <main class="wrap">
   <section class="viewer" id="viewer" hidden aria-label="ルートの再生"><div class="vwin">
-  <div class="vhead"><button type="button" id="vClose" aria-label="閉じる">×</button><div class="vstep" id="vStep"></div></div>
+  <div class="vhead"><button type="button" id="vClose" aria-label="閉じる">×</button><div class="vstep" id="vStep"></div><span class="vstat" id="vStat" hidden></span></div>
   <div class="vchips" id="vChips"></div>
   <div class="vframe"><div class="vurl" id="vUrl"></div><div class="vbox" id="vBox"></div></div>
   <div class="vcap" id="vCap" aria-live="polite"></div>
@@ -265,13 +295,9 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
 
     <div class="tabs" role="tablist" aria-label="検索の種類">
       <button type="button" role="tab" id="tabShort" aria-selected="true">最短ルート<small>クリック数が一番少ない道</small></button>
-      <button type="button" role="tab" id="tabDetour" aria-selected="false">寄り道ルート<small>連想で寄り道してから向かう</small></button>
+      <button type="button" role="tab" id="tabChal" aria-selected="false">チャレンジ<small>自分でたどって打数を競う</small></button>
     </div>
 
-    <div class="row" id="detourRow" hidden>
-      <span class="lbl">寄り道の数</span>
-      <div class="seg" id="detourSeg"></div>
-    </div>
 
     <details class="opt">
       <summary>細かい設定</summary>
@@ -293,12 +319,23 @@ footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
       <summary>しくみとルール</summary>
       <p><b>本文リンクだけ</b>：脚注・出典・関連項目・外部リンクの節、記事下部の折りたたみ一覧表（ナビゲーションボックス）のリンクは使いません。見つかったルートは、全区間の記事本文を実際に読み直して確認してから表示します。</p>
       <p><b>最短ルート</b>：出発側（記事内のリンク）と到着側（その記事へリンクしている記事）の両方から広げて、出会った所でつなぎます。調べた範囲の中で一番クリック数の少ないルートを出します（Wikipedia全体を調べ尽くすわけではないので、まれにもっと短い道が残っていることがあります）。</p>
-      <p><b>寄り道ルート</b>：出発から指定した数だけ、記事の冒頭近くにあるリンクを連想ゲームのようにたどります。その後、最後に着いた記事から最短ルートで到着します。押すたびにルートが変わります。</p>
+      <p><b>チャレンジ</b>：自分で記事の中のリンクを押して到着を目指します。押した回数が「打数」で、画面の下に今の打数と、そのルートの最短打数が出ます。「戻る」も1打に数えます。脚注・一覧表など本文以外のリンクは押せません。</p>
       <p><b>確実に着くための工夫</b>：年・日付の記事を外して見つからない場合は外さずに探し直し、ランダムな出発で行き止まりの場合は別の言葉で出発し直します。到着の記事にどこからも本文リンクが無い場合だけは、たどり着けません。</p>
     </details>
   </section>
 </main>
 <footer>データ：<a href="https://ja.wikipedia.org/" target="_blank" rel="noopener noreferrer">日本語版Wikipedia</a>（CC BY-SA 4.0）</footer>
+<section class="chal" id="chal" hidden aria-label="チャレンジ">
+  <div class="vbox" id="cBox"></div>
+  <div class="cbar">
+    <div class="cnow"><span id="cNow">0</span><small>打</small></div>
+    <div class="cbest">最短 <b id="cBest">…</b>打</div>
+    <div class="cgoal">目標：<b id="cGoal"></b></div>
+    <button type="button" id="cBack" style="margin-left:auto">戻る</button>
+    <button type="button" id="cGive">やめる</button>
+  </div>
+  <div class="cdone" id="cDone" hidden><div class="ccard" id="cCard"></div></div>
+</section>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -348,7 +385,7 @@ async function api(params, signal, count = true) {
   for (const [k, v] of Object.entries(all)) if (v !== undefined && v !== null) u.searchParams.set(k, String(v));
   for (let a = 0; a < 4; a++) {
     if (signal?.aborted) throw abortErr();
-    await slot();
+    if (params.action !== 'parse' && params.action !== 'opensearch') await slot();
     if (signal?.aborted) throw abortErr();
     if (count) { E.calls++; E.hooks.metrics(); }
     const r = await fetch(u.toString(), { signal });
@@ -816,17 +853,15 @@ function msg(type, title, body) { const m = $('msg'); m.className = 'msg ' + typ
 
 // ----- モード・設定UI -----
 function renderMode() {
-  const d = st.mode === 'detour';
-  $('tabShort').setAttribute('aria-selected', String(!d));
-  $('tabDetour').setAttribute('aria-selected', String(d));
-  $('detourRow').hidden = !d;
-  $('goBtn').textContent = d ? '寄り道ルートを探す' : '最短ルートを探す';
-  $('goBtn').classList.toggle('det', d);
-  $('detourSeg').innerHTML = [1, 2, 3, 4, 5].map((n) => `<button type="button" data-n="${n}" class="${n === st.steps ? 'on' : ''}" aria-pressed="${n === st.steps}">${n}</button>`).join('');
+  if (st.mode !== 'challenge') st.mode = 'shortest';
+  const c = st.mode === 'challenge';
+  $('tabShort').setAttribute('aria-selected', String(!c));
+  $('tabChal').setAttribute('aria-selected', String(c));
+  $('goBtn').textContent = c ? 'チャレンジ開始' : '最短ルートを探す';
+  $('goBtn').classList.toggle('det', c);
 }
 $('tabShort').onclick = () => { st.mode = 'shortest'; renderMode(); };
-$('tabDetour').onclick = () => { st.mode = 'detour'; renderMode(); };
-$('detourSeg').onclick = (e) => { const b = e.target.closest('button[data-n]'); if (b) { st.steps = +b.dataset.n; renderMode(); } };
+$('tabChal').onclick = () => { st.mode = 'challenge'; renderMode(); };
 $('dateSw').onclick = () => { st.avoidDates = !st.avoidDates; $('dateSw').setAttribute('aria-checked', String(st.avoidDates)); };
 $('swapBtn').onclick = () => { const a = $('startIn').value; $('startIn').value = $('goalIn').value; $('goalIn').value = a; };
 $('startRnd').onclick = async () => {
@@ -891,6 +926,7 @@ function parseExcl() {
 // ----- 検索本体 -----
 async function search() {
   if (st.busy) return;
+  if (st.mode === 'challenge') return startChallenge();
   const goalQ = $('goalIn').value.trim();
   if (!goalQ) { msg('warn', '到着の言葉を入れてください', '「到着」の欄に、たどり着きたい言葉を入れてから探してください。'); $('goalIn').focus(); return; }
   st.ctrl = new AbortController();
@@ -932,13 +968,8 @@ async function search() {
     let avoidDates = st.avoidDates;
     for (let attempt = 0; attempt < 4; attempt++) {
       const opt = { avoidDates, blocked, detourSteps: steps };
-      if (mode === 'shortest') {
-        const r = await shortestRoutes(start, goal, opt, signal);
-        if (r) return await show({ mode, start, goal, routes: r.routes, detourEnd: -1, notes });
-      } else {
-        const d = await detourRoute(start, goal, opt, signal);
-        if (d) return await show({ mode, start, goal, routes: [d.route], detourEnd: d.detourEnd, notes });
-      }
+      const r = await shortestRoutes(start, goal, opt, signal);
+      if (r) return await show({ mode, start, goal, routes: r.routes, detourEnd: -1, notes });
       // 見つからなかったときの立て直し
       if (avoidDates) { avoidDates = false; notes.push('年・日付・一覧の記事を外すと見つからなかったため、それらも使って探しました。'); continue; }
       if (isRandom) {
@@ -1061,7 +1092,7 @@ function saveHist(r) {
 }
 function renderHist() {
   $('hist').hidden = !st.hist.length;
-  $('histList').innerHTML = st.hist.map((h, i) => `<button type="button" class="it" data-i="${i}"><b>${esc(h.start)} → ${esc(h.goal)}</b><span class="pill ${h.mode === 'detour' ? 'd' : ''}">${h.mode === 'detour' ? '寄り道' : '最短'} ${h.route.length - 1}</span><small>${esc(h.route.join(' → '))}</small></button>`).join('');
+  $('histList').innerHTML = st.hist.map((h, i) => `<button type="button" class="it" data-i="${i}"><b>${esc(h.start)} → ${esc(h.goal)}</b><span class="pill ${h.mode === 'challenge' ? 'd' : ''}">${h.mode === 'challenge' ? `チャレンジ ${h.route.length - 1}打${h.best ? `（最短${h.best}）` : ''}` : `最短 ${h.route.length - 1}`}</span><small>${esc(h.route.join(' → '))}</small></button>`).join('');
 }
 $('histList').onclick = (e) => {
   const b = e.target.closest('button[data-i]'); if (!b) return;
@@ -1076,14 +1107,15 @@ const V = { route: [], i: 0, playing: false, loading: false, speed: 1, html: new
 const SPEEDS = [1, 2, 0.5];
 const vwait = (ms) => new Promise((r) => setTimeout(r, ms / V.speed));
 
-async function getHtml(title) {
+function getPage(title) {
   if (V.html.has(title)) return V.html.get(title);
   const p = api({ action: 'parse', page: title, prop: 'text', redirects: '1', disableeditsection: '1', disabletoc: '1' }, null, false)
-    .then((d) => d?.parse?.text || '');
+    .then((d) => ({ title: norm(d?.parse?.title || title), text: d?.parse?.text || '' }));
   V.html.set(title, p);
   p.catch(() => V.html.delete(title));
   return p;
 }
+async function getHtml(title) { return (await getPage(title)).text; }
 
 function cleanHtml(h) {
   const doc = new DOMParser().parseFromString(h, 'text/html');
@@ -1231,6 +1263,8 @@ function openViewerLoading() {
   $('vBox').innerHTML = '';
   $('vCap').textContent = '';
   document.querySelector('.vctl').hidden = true;
+  $('vStat').textContent = '最短ルートを検索中';
+  $('vStat').hidden = false;
 }
 // 探している間は出発の記事を先に開いて、読んでいるようにゆっくりスクロールする
 async function previewStart(title) {
@@ -1258,6 +1292,7 @@ async function previewStart(title) {
 async function openViewer() {
   const r = st.result; if (!r) return;
   V.loading = false;
+  $('vStat').hidden = true;
   $('res').hidden = true;
   document.querySelector('.vctl').hidden = false;
   setCtl(true);
@@ -1281,6 +1316,186 @@ $('vNext').onclick = () => { V.playing = false; if (V.i < V.route.length - 1) vG
 $('vSpeed').onclick = () => { V.speed = SPEEDS[(SPEEDS.indexOf(V.speed) + 1) % SPEEDS.length]; $('vSpeed').textContent = V.speed + '倍'; };
 $('vChips').onclick = (e) => { const b = e.target.closest('button[data-i]'); if (b) { V.playing = false; vGoto(+b.dataset.i); } };
 document.addEventListener('keydown', (e) => { if (!$('viewer').hidden && e.key === 'Escape') $('vClose').click(); });
+
+// ----- チャレンジモード（自分でリンクを押して到着を目指す） -----
+const C = { on: false, token: 0, start: '', goal: '', trail: [], best: null, bestRoutes: null, ctrl: null, done: false };
+const NS_RE = /^(Wikipedia|WP|Category|Template|File|Image|Portal|Help|Special|Module|MediaWiki|User|Talk|Draft|プロジェクト|カテゴリ|テンプレート|ファイル|画像|ポータル|ヘルプ|特別|モジュール|利用者|ノート|議論)(\s*‐?ノート)?:/i;
+const isGoalT = (t) => t === C.goal || aliasesOf(C.goal).has(t);
+
+function setBest(text) { $('cBest').textContent = text; }
+function updBar() {
+  $('cNow').textContent = C.trail.length - 1;
+  $('cBack').disabled = C.trail.length < 2 || C.done;
+}
+
+async function startChallenge() {
+  const goalQ = $('goalIn').value.trim();
+  if (!goalQ) { msg('warn', '到着の言葉を入れてください', '「到着」の欄に、目指す言葉を入れてから始めてください。'); $('goalIn').focus(); return; }
+  st.busy = true; $('goBtn').disabled = true; $('msg').hidden = true;
+  C.ctrl?.abort();
+  C.ctrl = new AbortController();
+  const signal = C.ctrl.signal;
+  Object.assign(C, { on: true, done: false, best: null, bestRoutes: null, trail: [] });
+  $('chal').hidden = false; document.body.style.overflow = 'hidden';
+  $('cDone').hidden = true; $('cBox').innerHTML = ''; $('cGoal').textContent = goalQ; setBest('…'); $('cNow').textContent = '0';
+  try {
+    let start;
+    const sq = $('startIn').value.trim();
+    if (!sq) start = await randomTitle(signal);
+    else { const s = await resolveTitle(sq, signal); if (!s) throw new Error(`「${sq}」の記事が見つかりませんでした`); start = s.title; }
+    const g = await resolveTitle(goalQ, signal);
+    if (!g) throw new Error(`「${goalQ}」の記事が見つかりませんでした`);
+    C.start = start; C.goal = g.title;
+    $('startIn').value = start; $('goalIn').value = g.title; $('cGoal').textContent = g.title;
+    await fetchAliases([g.title], signal);
+    C.trail = [start];
+    cShow(start);
+    // 裏で最短打数を計算（年・日付も含めた本当の最短を目指す）
+    shortestRoutes(start, g.title, { avoidDates: false, blocked: new Set() }, signal)
+      .then((r) => {
+        if (!C.on || C.start !== start) return;
+        if (r) { C.best = r.hops; C.bestRoutes = r.routes; setBest(String(r.hops)); }
+        else setBest('?');
+        if (C.done) renderDone(C.done);
+      })
+      .catch((e) => { if (e.name !== 'AbortError') setBest('?'); });
+  } catch (err) {
+    closeChallenge();
+    if (err.name !== 'AbortError') msg('warn', 'チャレンジを始められませんでした', err.message || '少し待ってからもう一度お試しください。');
+  } finally {
+    st.busy = false; $('goBtn').disabled = false;
+  }
+}
+
+async function cShow(title) {
+  const tk = ++C.token;
+  const box = $('cBox');
+  box.classList.add('fade');
+  updBar();
+  let page;
+  try { page = await getPage(title); }
+  catch { if (tk === C.token) { box.classList.remove('fade'); toast('記事を読み込めませんでした'); C.trail.pop(); updBar(); } return; }
+  if (tk !== C.token || !C.on) return;
+  const real = page.title;
+  C.trail[C.trail.length - 1] = real;
+  const from = real !== title && C.trail.length > 1 ? `<div class="vfrom">（${esc(title)}から転送）</div>` : '';
+  box.innerHTML = `<h1 class="vt">${esc(real)}</h1>${from}${cleanHtml(page.text)}`;
+  for (const a of box.querySelectorAll('a[data-t]')) if (!NS_RE.test(a.dataset.t)) a.dataset.ok = '1';
+  box.scrollTop = 0;
+  box.classList.remove('fade');
+  updBar();
+  if (isGoalT(real) || isGoalT(title)) finishChallenge('goal');
+}
+
+$('cBox').addEventListener('click', (e) => {
+  const a = e.target.closest('a[data-ok]');
+  if (!a || !C.on || C.done) return;
+  e.preventDefault();
+  C.trail.push(a.dataset.t);
+  cShow(a.dataset.t);
+});
+$('cBack').onclick = () => {
+  if (C.trail.length < 2 || C.done) return;
+  // 戻るも1打：1つ前の記事をもう一度たどった扱い
+  const prev = C.trail[C.trail.length - 2];
+  C.trail.push(prev);
+  cShow(prev);
+};
+$('cGive').onclick = () => { if (C.done) return; finishChallenge('give'); };
+
+function finishChallenge(kind) {
+  C.done = kind;
+  updBar();
+  renderDone(kind);
+  if (kind === 'goal') {
+    const route = [...C.trail];
+    st.hist = [{ mode: 'challenge', start: C.start, goal: C.goal, route, best: C.best, at: Date.now() }, ...st.hist].slice(0, 12);
+    try { localStorage.setItem(HKEY, JSON.stringify(st.hist)); } catch { /* 保存できない環境 */ }
+    renderHist();
+  }
+}
+
+function renderDone(kind) {
+  const n = C.trail.length - 1;
+  const best = C.best;
+  let cmp;
+  if (best == null) cmp = '最短打数を計算中です…';
+  else if (kind !== 'goal') cmp = `最短は ${best}打 でした`;
+  else if (n <= best) cmp = '最短と同じ打数！ 完璧です';
+  else cmp = `最短は ${best}打（あと ${n - best}打 縮められます）`;
+  $('cCard').innerHTML = `
+    <h2>${kind === 'goal' ? 'ゴール！' : 'チャレンジ終了'}</h2>
+    ${kind === 'goal' ? `<p class="cbig">${n}<small>打</small></p>` : ''}
+    <p class="ccmp">${esc(cmp)}</p>
+    <p class="ctrail">${esc(C.trail.join(' → '))}</p>
+    <div class="cbtns">
+      ${kind === 'goal' ? `<a class="cx" href="${esc('https://x.com/intent/tweet?' + new URLSearchParams({ text: chalShareText() }).toString())}" target="_blank" rel="noopener noreferrer">Xでシェア</a><button type="button" class="p3" id="cCopy">結果をコピー</button>` : ''}
+      ${C.bestRoutes ? '<button type="button" class="p1" id="cSeeBest">最短ルートを見る</button>' : ''}
+      <button type="button" class="p2" id="cAgain">別の言葉でもう一度</button>
+      ${kind !== 'goal' ? '<button type="button" class="p3" id="cResume">続ける</button>' : ''}
+      <button type="button" class="p3" id="cClose">閉じる</button>
+    </div>`;
+  $('cDone').hidden = false;
+}
+
+$('cCard').addEventListener('click', (e) => {
+  const id = e.target.closest('button')?.id;
+  if (id === 'cCopy') {
+    copyText(chalShareText());
+  } else if (id === 'cSeeBest') {
+    const r = { mode: 'shortest', start: C.start, goal: C.goal, routes: C.bestRoutes, detourEnd: -1, notes: [] };
+    closeChallenge();
+    show(r);
+  } else if (id === 'cAgain') {
+    closeChallenge();
+    $('startIn').value = '';
+    st.mode = 'challenge'; renderMode();
+    startChallenge();
+  } else if (id === 'cResume') {
+    C.done = false; $('cDone').hidden = true; updBar();
+  } else if (id === 'cClose') {
+    closeChallenge();
+  }
+});
+
+function chalUrl() {
+  const base = pageUrl();
+  if (!base) return '';
+  return base + '?' + new URLSearchParams({ s: C.start, g: C.goal }).toString();
+}
+function chalShareText() {
+  const n = C.trail.length - 1;
+  const score = C.best == null ? `${n}打でゴール⛳` : n <= C.best ? `${n}打でゴール⛳ 最短タイ！` : `${n}打でゴール⛳（最短${C.best}打）`;
+  const lines = [`${C.start} ➞ ${C.goal}`, score, 'あなたは何打で行ける？', '#Wikipediaゴルフ'];
+  const u = chalUrl();
+  if (u) lines.push(u);
+  return lines.join('\n');
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); toast('コピーしました'); }
+  catch {
+    const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.top = '-999px';
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch { /* 失敗 */ }
+    ta.remove(); toast(ok ? 'コピーしました' : 'コピーできませんでした');
+  }
+}
+// シェアされたURL（?s=出発&g=到着）から開いたら、同じお題をチャレンジ欄にセット
+{
+  const q = new URLSearchParams(location.search);
+  if (q.get('g')) {
+    $('goalIn').value = q.get('g');
+    $('startIn').value = q.get('s') || '';
+    st.mode = 'challenge';
+    setTimeout(() => toast('お題がセットされました。「チャレンジ開始」で挑戦！'), 300);
+  }
+}
+
+function closeChallenge() {
+  C.on = false; C.token++; C.ctrl?.abort();
+  $('chal').hidden = true; $('cDone').hidden = true; document.body.style.overflow = '';
+}
+document.addEventListener('keydown', (e) => { if (!$('chal').hidden && e.key === 'Escape' && $('cDone').hidden) $('cGive').click(); });
 
 renderMode();
 loadHist();
