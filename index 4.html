@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ウィキ乗り換え案内</title>
+<meta name="description" content="どんな言葉からでも、Wikipediaの本文リンクだけをたどって指定した言葉へ。最短ルートと寄り道ルートを検索できます。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ウィキ乗り換え案内">
+<meta property="og:description" content="Wikipediaの本文リンクだけで、好きな言葉から好きな言葉へ。最短ルートと寄り道ルート。">
+<meta property="og:url" content="https://nmb48uretekure.github.io/nmb48-route-/">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@500;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@500&display=swap" rel="stylesheet">
+<style>
+/* VOICE: 駅の乗り換え案内のように、迷わず・頼もしく
+   IDEA: 路線図。記事は駅、リンクは線路
+   PICTURE: 結果は縦の路線図（寄り道区間は青緑、最短区間は朱色）
+   COLOUR and TYPE: 紺の地に朱色と青緑。見出しは M PLUS 1p
+   LAYOUT: 1カラム。入力→進捗→路線図→履歴 */
+:root{color-scheme:light dark;
+ --bg:light-dark(#f4f1ea,#0f1424);--card:light-dark(#ffffff,#171e33);--ink:light-dark(#16213e,#e9ecf5);
+ --sub:light-dark(#5b6378,#9aa3ba);--line:light-dark(#e2ddd2,#28304a);--navy:#16213e;
+ --red:#e8462a;--teal:#0f9aa8;--soft:light-dark(#fbf8f2,#131a2d);--chip:light-dark(#efeae0,#222a42)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Noto Sans JP","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;overflow-x:clip}
+h1,h2,h3,.disp{font-family:"M PLUS 1p","Noto Sans JP",sans-serif}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.top{background:var(--navy);color:#fff;padding:28px max(5vw,16px) 64px;position:relative;overflow:hidden}
+.top svg.map{position:absolute;right:-30px;top:-10px;width:min(520px,90vw);height:auto;opacity:.9;pointer-events:none}
+.top h1{margin:0;font-size:clamp(30px,6vw,46px);line-height:1.08;font-weight:800;position:relative;text-wrap:balance}
+.top p{margin:10px 0 0;max-width:34em;color:#c9d0e4;position:relative;font-size:15px}
+.wrap{max-width:760px;margin:-40px auto 0;padding:0 14px 40px;position:relative}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 24px rgb(22 33 62 / .08)}
+.card+.card,.card+section,section+section{margin-top:14px}
+.field{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center}
+.field+.field{margin-top:8px}
+.dot{width:18px;height:18px;border-radius:50%;border:4px solid var(--red);background:var(--card);justify-self:center}
+.dot.g{border-color:var(--ink);background:var(--ink)}
+.rail{position:relative}
+.rail:before{content:"";position:absolute;left:13px;top:34px;bottom:34px;width:2px;background:repeating-linear-gradient(var(--sub) 0 4px,transparent 4px 8px)}
+.inp{position:relative}
+.inp input{width:100%;height:50px;border:1.5px solid var(--line);border-radius:12px;background:var(--soft);padding:0 14px;font-size:16px}
+.inp input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 4px rgb(232 70 42 / .15)}
+.inp label{position:absolute;left:12px;top:-9px;font-size:12px;background:var(--card);padding:0 4px;color:var(--sub);font-weight:700}
+.ibtn{width:48px;height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--soft);display:grid;place-items:center}
+.ibtn:hover{border-color:var(--sub)}
+.ibtn svg{width:22px;height:22px}
+.sug{position:absolute;left:0;right:0;top:54px;z-index:20;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px rgb(0 0 0 / .18);list-style:none;margin:0;padding:4px;max-height:260px;overflow:auto}
+.sug li{padding:10px 12px;border-radius:8px;cursor:pointer}
+.sug li:hover,.sug li.on{background:var(--chip)}
+.hint{font-size:13px;color:var(--sub);margin:6px 0 0 38px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--chip);padding:5px;border-radius:14px;margin-top:16px}
+.tabs button{border:0;background:transparent;border-radius:10px;padding:10px 6px;font-weight:700;min-height:48px;line-height:1.3}
+.tabs button small{display:block;font-weight:500;font-size:12px;color:var(--sub)}
+.tabs button[aria-selected=true]{background:var(--card);box-shadow:0 2px 8px rgb(0 0 0 / .12)}
+.tabs button[aria-selected=true] small{color:inherit}
+#tabShort[aria-selected=true]{color:var(--red)}#tabDetour[aria-selected=true]{color:var(--teal)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.seg{display:flex;gap:4px}
+.seg button{min-width:44px;height:40px;border-radius:10px;border:1.5px solid var(--line);background:var(--soft);font-weight:700}
+.seg button.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.lbl{font-size:14px;font-weight:700;color:var(--sub)}
+.sw{display:inline-flex;align-items:center;gap:10px;border:0;background:none;padding:6px 0;font-size:14px;font-weight:500;text-align:left}
+.sw i{width:42px;height:24px;border-radius:12px;background:var(--line);position:relative;flex:none;transition:background .2s}
+.sw i:after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw[aria-checked=true] i{background:var(--red)}.sw[aria-checked=true] i:after{transform:translateX(18px)}
+details.opt{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+details.opt summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--sub);padding:6px 0}
+.excl{width:100%;height:44px;border:1.5px solid var(--line);border-radius:10px;background:var(--soft);padding:0 12px;font-size:16px;margin-top:6px}
+.go{width:100%;height:56px;margin-top:16px;border:0;border-radius:14px;background:var(--red);color:#fff;font-weight:800;font-size:18px;font-family:"M PLUS 1p",sans-serif}
+.go.det{background:var(--teal)}
+.go:disabled{opacity:.55;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chips span{font-size:13px;color:var(--sub);align-self:center;margin-right:2px}
+.chips button{border:0;background:var(--chip);border-radius:999px;padding:7px 12px;font-size:14px;min-height:36px}
+.prog{border-color:var(--red)}
+.prog .ph{display:inline-block;font-size:12px;font-weight:700;background:var(--red);color:#fff;border-radius:999px;padding:2px 10px}
+.prog .tm{font-size:13px;color:var(--sub);margin-left:6px;font-variant-numeric:tabular-nums}
+.prog p{margin:8px 0 0;font-weight:500}
+.bar{height:6px;border-radius:3px;background:var(--chip);overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;width:30%;background:var(--red);border-radius:3px;animation:slide 1.2s ease-in-out infinite}
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(340%)}}
+.stats{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--sub);margin-top:10px}
+.stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+.live{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;font-size:13px}
+.live span{background:var(--chip);border-radius:8px;padding:3px 8px}
+.cancel{float:right;border:1.5px solid var(--line);background:var(--soft);border-radius:10px;padding:6px 12px;font-size:14px;min-height:40px}
+.msg{border-radius:14px;padding:14px 16px;border:1.5px solid}
+.msg.warn{background:light-dark(#fff6e5,#2a2414);border-color:#e7b54a}
+.msg.err{background:light-dark(#fdecea,#2c1716);border-color:#e0786a}
+.msg.info{background:light-dark(#eaf4f6,#13262b);border-color:#7cc3cc}
+.msg h3{margin:0;font-size:16px}.msg p{margin:4px 0 0;font-size:14px}
+.res .head{background:var(--red);color:#fff;border-radius:18px;padding:20px;box-shadow:0 8px 24px rgb(22 33 62 / .18)}
+.res.det .head{background:var(--teal)}
+.res .path{margin:10px 0 0;background:rgb(0 0 0 / .18);border-radius:10px;padding:10px 12px;font-weight:700;font-size:15px;line-height:1.7;overflow-wrap:anywhere}
+.res{margin-bottom:14px}
+.msg{margin-bottom:14px}
+.prog{margin-bottom:14px}
+.res .big{font-size:clamp(38px,9vw,56px);font-weight:800;line-height:1;font-family:"M PLUS 1p",sans-serif}
+.res .big small{font-size:18px;margin-left:4px}
+.res .ttl{margin:8px 0 0;font-size:18px;line-height:1.4;font-weight:700}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tags span{font-size:12px;border:1px solid rgb(255 255 255 / .3);border-radius:999px;padding:2px 10px}
+.note{font-size:13px;color:#fff;opacity:.9;margin:8px 0 0}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.acts button,.acts a{border:0;border-radius:12px;padding:0 16px;min-height:44px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.b-white{background:#fff;color:#16213e}.b-x{background:#000;color:#fff;border:1px solid rgb(255 255 255 / .25)!important}.b-teal{background:#16213e;color:#fff}
+.alts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.alts button{border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:6px 12px;font-weight:700;min-height:40px}
+.alts button.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.line{list-style:none;margin:16px 0 0;padding:0}
+.st{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;position:relative}
+.st:before{content:"";position:absolute;left:15px;top:0;bottom:0;width:5px;background:var(--seg,var(--red))}
+.st:first-child:before{top:24px}.st:last-child:before{bottom:calc(100% - 24px)}
+.st .pin{width:24px;height:24px;margin:12px 0 0 5px;border-radius:50%;background:var(--card);border:5px solid var(--seg,var(--red));position:relative;z-index:1}
+.st.end .pin{width:30px;height:30px;margin:9px 0 0 2px;background:var(--ink);border-color:var(--ink)}
+.st.beg .pin{width:30px;height:30px;margin:9px 0 0 2px}
+.st a.box{display:flex;gap:12px;text-decoration:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.st a.box:hover{border-color:var(--sub)}
+.st img{width:64px;height:64px;border-radius:10px;object-fit:cover;flex:none;background:var(--chip)}
+.st .lab{font-size:12px;font-weight:700;color:var(--seg,var(--red))}
+.st h3{margin:0;font-size:17px;line-height:1.35;overflow-wrap:anywhere}
+.st p{margin:4px 0 0;font-size:13px;color:var(--sub);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--sub);margin-top:12px}
+.legend i{display:inline-block;width:18px;height:5px;border-radius:3px;vertical-align:middle;margin-right:5px}
+.hist h2,.how h2{margin:0;font-size:18px}
+.hist .hd{display:flex;justify-content:space-between;align-items:center}
+.hist .clr{border:0;background:none;color:var(--sub);font-size:13px;min-height:40px}
+.hist button.it{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;padding:10px 2px}
+.hist .it b{font-size:15px}.hist .it small{display:block;color:var(--sub);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{font-size:12px;border-radius:999px;padding:1px 8px;margin-left:6px;color:#fff;background:var(--red);font-weight:700}
+.pill.d{background:var(--teal)}
+.how summary{cursor:pointer;font-weight:700;font-family:"M PLUS 1p",sans-serif;font-size:17px;padding:4px 0}
+.how p{font-size:14px;color:var(--sub);margin:8px 0 0}
+footer{text-align:center;font-size:13px;color:var(--sub);padding:10px 16px 30px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--navy);color:#fff;border-radius:999px;padding:10px 18px;font-size:14px;z-index:50}
+.b-play{background:#fff;color:#16213e;font-size:15px!important;min-height:48px!important}
+.b-play svg{width:16px;height:16px}
+.viewer{position:fixed;inset:0;z-index:40;background:rgb(8 12 28 / .62);display:grid;place-items:center;padding:14px;animation:vin .2s ease-out}
+@keyframes vin{from{opacity:0}}
+.vwin{width:min(560px,100%);height:min(74vh,680px);background:var(--navy);color:#fff;border-radius:20px;display:flex;flex-direction:column;padding:10px;box-shadow:0 20px 50px rgb(0 0 0 / .45)}
+.vsearch{text-align:center;padding:60px 10px;color:#54595d}
+.vsearch .spin{width:46px;height:46px;margin:0 auto 16px;border-radius:50%;border:5px solid #eaecf0;border-top-color:var(--red);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.vsearch p{margin:6px 0}.vsearch .vs1{font-weight:700;color:#202122}.vsearch .vs2{font-size:13px}
+.vctl button:disabled{opacity:.35}
+.vhead{display:flex;align-items:center;gap:10px}
+.vhead button{width:44px;height:44px;border-radius:12px;border:1px solid rgb(255 255 255 / .25);background:transparent;color:#fff;font-size:22px;line-height:1}
+.vstep{font-family:"M PLUS 1p",sans-serif;font-weight:800;font-size:18px;line-height:1.3}
+.vstep small{display:block;font-weight:500;font-size:12px;opacity:.8;font-family:"Noto Sans JP",sans-serif}
+.vchips{display:flex;gap:4px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
+.vchips button{flex:none;border:0;border-radius:999px;padding:4px 10px;font-size:12px;background:rgb(255 255 255 / .12);color:#fff;min-height:30px}
+.vchips button.on{background:var(--red)}.vchips button.done{background:rgb(255 255 255 / .3)}
+.vframe{flex:1;min-height:0;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 10px 30px rgb(0 0 0 / .35)}
+.vurl{background:#eaecf0;color:#54595d;font-size:12px;padding:7px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:ui-monospace,Menlo,monospace}
+.vbox{flex:1;overflow-y:auto;position:relative;background:#fff;color:#202122;padding:12px 14px 40vh;font:15px/1.7 "Noto Sans JP",sans-serif;-webkit-overflow-scrolling:touch}
+.vbox .vt{font-family:"Noto Serif JP",serif;font-weight:500;font-size:26px;border-bottom:1px solid #a2a9b1;margin:0 0 10px;padding-bottom:4px;color:#202122}
+.vbox h2{font-size:20px;border-bottom:1px solid #a2a9b1;margin:18px 0 8px;font-weight:500}
+.vbox h3{font-size:17px;margin:14px 0 6px}
+.vbox p{margin:0 0 10px}
+.vbox a{color:#3366cc;text-decoration:none;cursor:default}
+.vbox img{max-width:100%;height:auto}
+.vbox table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;font-size:13px;margin:0 0 10px}
+.vbox .infobox{float:none!important;width:100%!important;margin:0 0 12px!important;background:#f8f9fa;border:1px solid #a2a9b1}
+.vbox td,.vbox th{border:1px solid #eaecf0;padding:3px 6px;vertical-align:top}
+.vbox figure,.vbox .thumb{margin:0 0 10px;float:none!important}
+.vbox figcaption,.vbox .thumbcaption{font-size:12px;color:#54595d}
+.vbox ul,.vbox ol{padding-left:22px;margin:0 0 10px}
+.vbox .hit{background:#ffe066;color:#202122;border-radius:4px;box-shadow:0 0 0 4px #ffe066;animation:hitp .8s ease-in-out infinite alternate}
+@keyframes hitp{to{box-shadow:0 0 0 7px rgb(255 224 102 / .55)}}
+.tap{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:rgb(232 70 42 / .45);border:3px solid var(--red);pointer-events:none;animation:tap .9s ease-out forwards}
+@keyframes tap{0%{transform:scale(.3);opacity:1}100%{transform:scale(1.8);opacity:0}}
+.vbox.fade{opacity:.15;transition:opacity .25s}
+.vload{color:#54595d;padding:30px 0;text-align:center}
+.vcap{min-height:48px;padding:10px 4px 4px;font-weight:700;font-size:15px;line-height:1.4}
+.vcap b{color:#ffe066}
+.vctl{display:grid;grid-template-columns:1fr 1.4fr 1fr auto;gap:8px}
+.vctl button{min-height:48px;border-radius:12px;border:1px solid rgb(255 255 255 / .25);background:rgb(255 255 255 / .08);color:#fff;font-weight:700;font-size:15px}
+.vctl #vPlay{background:var(--red);border-color:var(--red)}
+.vctl #vSpeed{padding:0 12px}
+.arrive{text-align:center;padding:20px 0 10px}
+.arrive b{display:inline-block;background:var(--red);color:#fff;border-radius:999px;padding:6px 18px;font-family:"M PLUS 1p",sans-serif;font-size:20px}
+@media(prefers-reduced-motion:reduce){.vbox .hit,.tap{animation:none}}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+@media(max-width:600px){.top svg.map{opacity:.3}}
+@media(prefers-reduced-motion:reduce){.bar i{animation:none;width:100%}}
+</style>
+</head>
+<body>
+<header class="top">
+  <svg class="map" viewBox="0 0 520 220" aria-hidden="true">
+    <path d="M10 180 C120 180 140 60 250 60 S400 150 510 40" fill="none" stroke="#e8462a" stroke-width="9" stroke-linecap="round"/>
+    <path d="M60 30 C150 40 170 140 250 140 S380 200 500 190" fill="none" stroke="#0f9aa8" stroke-width="9" stroke-linecap="round" opacity=".85"/>
+    <g fill="#16213e" stroke="#fff" stroke-width="5"><circle cx="10" cy="180" r="10"/><circle cx="250" cy="60" r="10"/><circle cx="510" cy="40" r="10"/><circle cx="250" cy="140" r="10"/><circle cx="60" cy="30" r="10"/><circle cx="500" cy="190" r="10"/></g>
+  </svg>
+  <h1>ウィキ乗り換え案内</h1>
+  <p>好きな言葉から好きな言葉へ。Wikipediaの本文リンクだけを乗り継いで、最短ルートか寄り道ルートを探します。</p>
+</header>
+
+<main class="wrap">
+  <section class="card prog" id="prog" hidden aria-live="polite">
+    <button type="button" class="cancel" id="cancelBtn">やめる</button>
+    <span class="ph" id="phase">準備中</span><span class="tm" id="elapsed">0.0秒</span>
+    <p id="progText">Wikipediaに問い合わせています…</p>
+    <div class="live" id="live" hidden></div>
+    <div class="bar"><i></i></div>
+    <div class="stats"><span>通信 <b id="mCalls">0</b>回</span><span>出発側 <b id="mF">0</b>記事</span><span>到着側 <b id="mB">0</b>記事</span></div>
+  </section>
+
+  <div class="msg" id="msg" hidden role="alert"><h3 id="msgT"></h3><p id="msgB"></p></div>
+
+  <section class="res" id="res" hidden>
+    <div class="head">
+      <div class="big" id="rBig"></div>
+      <p class="ttl" id="rTitle"></p>
+      <p class="path" id="rPath"></p>
+      <div class="tags" id="rTags"></div>
+      <p class="note" id="rNote" hidden></p>
+      <div class="acts">
+        <button type="button" class="b-play" id="playBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>もう一度再生</button>
+        <button type="button" class="b-white" id="copyBtn">結果をコピー</button>
+        <a class="b-x" id="xBtn" href="#" target="_blank" rel="noopener noreferrer">Xでシェア</a>
+        <button type="button" class="b-teal" id="againBtn">別のルートを探す</button>
+      </div>
+    </div>
+    <div class="alts" id="alts" hidden></div>
+    <div class="legend" id="legend" hidden><span><i style="background:var(--teal)"></i>寄り道区間</span><span><i style="background:var(--red)"></i>最短で到着する区間</span></div>
+    <ol class="line" id="line"></ol>
+  </section>
+
+  <form class="card" id="form" autocomplete="off">
+    <div class="rail">
+      <div class="field">
+        <span class="dot" aria-hidden="true"></span>
+        <div class="inp"><label for="startIn">出発</label>
+          <input id="startIn" placeholder="空欄でランダムな言葉" enterkeyhint="next">
+          <ul class="sug" id="startSug" role="listbox" hidden></ul></div>
+        <button type="button" class="ibtn" id="startRnd" aria-label="ランダムな言葉を入れる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.3" fill="currentColor"/><circle cx="16" cy="16" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg></button>
+      </div>
+      <div class="field">
+        <span class="dot g" aria-hidden="true"></span>
+        <div class="inp"><label for="goalIn">到着</label>
+          <input id="goalIn" enterkeyhint="search">
+          <ul class="sug" id="goalSug" role="listbox" hidden></ul></div>
+        <button type="button" class="ibtn" id="swapBtn" aria-label="出発と到着を入れ替える"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></svg></button>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="検索の種類">
+      <button type="button" role="tab" id="tabShort" aria-selected="true">最短ルート<small>クリック数が一番少ない道</small></button>
+      <button type="button" role="tab" id="tabDetour" aria-selected="false">寄り道ルート<small>連想で寄り道してから向かう</small></button>
+    </div>
+
+    <div class="row" id="detourRow" hidden>
+      <span class="lbl">寄り道の数</span>
+      <div class="seg" id="detourSeg"></div>
+    </div>
+
+    <details class="opt">
+      <summary>細かい設定</summary>
+      <button type="button" class="sw" id="dateSw" role="switch" aria-checked="true"><i></i>「2010年」「〇〇の一覧」などの年・日付・一覧記事を中継に使わない</button>
+      <div style="margin-top:8px"><label class="lbl" for="exclIn">中継に使わない記事（読点や「,」で区切る）</label>
+        <input class="excl" id="exclIn" placeholder="例：日本、東京都、AKB48"></div>
+    </details>
+
+    <button class="go" id="goBtn" type="submit">最短ルートを探す</button>
+  </form>
+
+  <section class="card hist" id="hist" hidden>
+    <div class="hd"><h2>最近の検索</h2><button type="button" class="clr" id="clrHist">履歴を消す</button></div>
+    <div id="histList"></div>
+  </section>
+
+  <section class="card how">
+    <details>
+      <summary>しくみとルール</summary>
+      <p><b>本文リンクだけ</b>：脚注・出典・関連項目・外部リンクの節、記事下部の折りたたみ一覧表（ナビゲーションボックス）のリンクは使いません。見つかったルートは、全区間の記事本文を実際に読み直して確認してから表示します。</p>
+      <p><b>最短ルート</b>：出発側（記事内のリンク）と到着側（その記事へリンクしている記事）の両方から広げて、出会った所でつなぎます。調べた範囲の中で一番クリック数の少ないルートを出します（Wikipedia全体を調べ尽くすわけではないので、まれにもっと短い道が残っていることがあります）。</p>
+      <p><b>寄り道ルート</b>：出発から指定した数だけ、記事の冒頭近くにあるリンクを連想ゲームのようにたどります。その後、最後に着いた記事から最短ルートで到着します。押すたびにルートが変わります。</p>
+      <p><b>確実に着くための工夫</b>：年・日付の記事を外して見つからない場合は外さずに探し直し、ランダムな出発で行き止まりの場合は別の言葉で出発し直します。到着の記事にどこからも本文リンクが無い場合だけは、たどり着けません。</p>
+    </details>
+  </section>
+</main>
+<footer>データ：<a href="https://ja.wikipedia.org/" target="_blank" rel="noopener noreferrer">日本語版Wikipedia</a>（CC BY-SA 4.0）</footer>
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="ルートの再生"><div class="vwin">
+  <div class="vhead"><button type="button" id="vClose" aria-label="閉じる">×</button><div class="vstep" id="vStep"></div></div>
+  <div class="vchips" id="vChips"></div>
+  <div class="vframe"><div class="vurl" id="vUrl"></div><div class="vbox" id="vBox"></div></div>
+  <div class="vcap" id="vCap" aria-live="polite"></div>
+  <div class="vctl"><button type="button" id="vPrev">前の記事</button><button type="button" id="vPlay">一時停止</button><button type="button" id="vNext">次の記事</button><button type="button" id="vSpeed">1倍</button></div>
+</div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+{
+// ===== Wikipedia ルート探索エンジン（本文リンク限定・双方向探索） =====
+const API = 'https://ja.wikipedia.org/w/api.php';
+const MAX_HOPS = 8;            // 探索する最大クリック数
+const TIME_BUDGET_MS = 150000; // 1回の探索の時間上限
+const F_CAP = [1, 70, 45, 30]; // 発リンク側：各段で展開する記事数の上限
+const B_CAP = [1, 120, 60, 40];// 被リンク側：各段で展開する記事数の上限
+const GENERIC = new Set(['日本', '世界', '地球', '人間', '歴史', '社会', '文化', '言語', '英語', '日本語',
+  'アメリカ合衆国', 'ヨーロッパ', 'アジア', '中華人民共和国', '東京都', '大阪府', '平成', '昭和', '令和', '明治', '大正',
+  'テレビ', '映画', '音楽', 'スポーツ', '科学', '経済', '政治', 'インターネット', '英語版']);
+const EXCLUDED_SECTIONS = new Set(['脚注', '注釈', '出典', '参考文献', '参照', '註', '注', '典拠', '脚注・出典', '注釈・出典', '関連項目', '外部リンク']);
+
+const E = {
+  clean: new Map(),   // 正規タイトル -> 本文リンク配列（出現順）
+  canon: new Map(),   // 入力タイトル -> 正規タイトル（リダイレクト解決後）
+  aliases: new Map(), // 正規タイトル -> Set(自身＋リダイレクト名)
+  lh: new Map(),      // タイトル -> 被リンク元配列
+  calls: 0,
+  gap: 250, base: 250, last: 0, chain: Promise.resolve(),
+  hooks: { progress() {}, metrics() {} }
+};
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const abortErr = () => new DOMException('Aborted', 'AbortError');
+const norm = (t) => String(t || '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+const canonOf = (t) => E.canon.get(norm(t)) || norm(t);
+const linksOf = (t) => E.clean.get(canonOf(t)) || [];
+const isDateOrList = (t) => /^(\d+年|\d+月\d+日|\d+年代|\d+世紀|紀元前)/.test(t) || /の一覧$|一覧$/.test(t) || /\(曖昧さ回避\)$/.test(t);
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function slot() {
+  const p = E.chain.then(async () => {
+    const w = Math.max(0, E.gap - (Date.now() - E.last));
+    if (w) await sleep(w);
+    E.last = Date.now();
+  });
+  E.chain = p.catch(() => {});
+  return p;
+}
+
+async function api(params, signal, count = true) {
+  const u = new URL(API);
+  const all = { format: 'json', formatversion: '2', origin: '*', ...params };
+  for (const [k, v] of Object.entries(all)) if (v !== undefined && v !== null) u.searchParams.set(k, String(v));
+  for (let a = 0; a < 4; a++) {
+    if (signal?.aborted) throw abortErr();
+    await slot();
+    if (signal?.aborted) throw abortErr();
+    if (count) { E.calls++; E.hooks.metrics(); }
+    const r = await fetch(u.toString(), { signal });
+    if (r.status === 429 || r.status === 503) {
+      E.gap = Math.min(1500, E.gap * 1.6);
+      E.hooks.progress(`Wikipediaのアクセス制限を避けるため待機中…（${a + 1}/3）`);
+      await sleep(Math.min(10000, 2000 * 2 ** a));
+      continue;
+    }
+    if (!r.ok) throw new Error(`Wikipedia API通信エラー (HTTP ${r.status})`);
+    const d = await r.json();
+    if (d && d.error) throw new Error(d.error.info || 'Wikipedia APIエラー');
+    if (E.gap > E.base) E.gap = Math.max(E.base, Math.floor(E.gap * 0.9));
+    return d;
+  }
+  const e = new Error('Wikipediaへのアクセスが混み合っています (HTTP 429)');
+  e.rate = true;
+  throw e;
+}
+
+// ---------- Wikitext から本文リンクだけを抜き出す ----------
+function stripTemplates(text, nameRe) {
+  let out = '', i = 0;
+  const n = text.length;
+  while (i < n) {
+    if (text[i] === '{' && text[i + 1] === '{') {
+      let depth = 1, j = i + 2;
+      while (j < n && depth > 0) {
+        if (text[j] === '{' && text[j + 1] === '{') { depth++; j += 2; }
+        else if (text[j] === '}' && text[j + 1] === '}') { depth--; j += 2; }
+        else j++;
+      }
+      const inner = text.slice(i + 2, depth === 0 ? j - 2 : j);
+      const name = inner.split(/[|\n]/)[0].trim();
+      if (!nameRe.test(name)) out += '{{' + stripTemplates(inner, nameRe) + (depth === 0 ? '}}' : '');
+      i = j;
+    } else { out += text[i]; i++; }
+  }
+  return out;
+}
+
+function stripCollapsibleTables(text) {
+  let out = '', i = 0;
+  const n = text.length;
+  while (i < n) {
+    if (text[i] === '{' && text[i + 1] === '|') {
+      let depth = 1, j = i + 2;
+      while (j < n && depth > 0) {
+        if (text[j] === '{' && text[j + 1] === '|') { depth++; j += 2; }
+        else if (text[j] === '|' && text[j + 1] === '}') { depth--; j += 2; }
+        else j++;
+      }
+      const block = text.slice(i, j);
+      const first = block.split('\n')[0] || '';
+      if (!(/\b(mw-collapsible|collapsible|navbox)\b/i.test(first) && !/\binfobox\b/i.test(first))) out += block;
+      i = j;
+    } else { out += text[i]; i++; }
+  }
+  return out;
+}
+
+function extractBodyLinks(wikitext, selfTitle) {
+  if (!wikitext) return [];
+  let t = String(wikitext);
+  t = t.replace(/<!--[\s\S]*?-->/g, '');
+  t = t.replace(/<(nowiki|math|syntaxhighlight|source|timeline|gallery)\b[^>]*>[\s\S]*?<\/\1>/gi, '');
+  t = t.replace(/<ref\b[^>]*>[\s\S]*?<\/ref>/gi, '').replace(/<ref\b[^>]*\/\s*>/gi, '');
+
+  const kept = [];
+  let removing = 0;
+  for (const line of t.split('\n')) {
+    const m = line.match(/^(={2,6})\s*(.+?)\s*\1\s*$/);
+    if (m) {
+      const level = m[1].length;
+      const head = m[2].replace(/'''?/g, '').replace(/<[^>]+>/g, '').trim();
+      if (removing && level <= removing) removing = 0;
+      if (EXCLUDED_SECTIONS.has(head)) { removing = level; continue; }
+    }
+    if (!removing) kept.push(line);
+  }
+  t = kept.join('\n');
+  t = t.replace(/\{\{\s*(?:Collapse top|Collapsed top|Hidden begin|Refbegin)\b[\s\S]*?\{\{\s*(?:Collapse bottom|Collapsed bottom|Hidden end|Refend)\s*\}\}/gi, '');
+  t = stripTemplates(t, /^(?:cite\b|citation\b|sfn|harv|efn|refn|reflist|notelist|navbox|hidden|authority\s*control|normdaten|portal|sister|commonscat|wikisource|wikiquote|wiktionary|wikibooks|wikinews|stub$|.*-stub$|脚注ヘルプ|デフォルトソート|DEFAULTSORT)/i);
+  t = stripCollapsibleTables(t);
+
+  const self = norm(selfTitle);
+  const seen = new Set(), out = [];
+  const re = /\[\[([^\[\]\n]+)\]\]/g;
+  let m;
+  while ((m = re.exec(t)) !== null) {
+    let target = m[1].split('|')[0].split('#')[0].trim();
+    if (!target) continue;
+    if (target.startsWith(':')) target = target.slice(1).trim();
+    try { if (target.includes('%')) target = decodeURIComponent(target); } catch { /* そのまま */ }
+    let title = norm(target);
+    if (!title) continue;
+    if (/^(Wikipedia|WP|Category|Template|File|Image|Portal|Help|Special|Module|MediaWiki|User|Talk|Draft|Book|TimedText|プロジェクト|カテゴリ|テンプレート|ファイル|画像|ポータル|ヘルプ|特別|モジュール|利用者|ノート|議論|wikt|wiktionary|wikisource|wikiquote|wikibooks|wikinews|wikiversity|wikivoyage|commons|meta|species|s|q|n|b|v|d):/i.test(title) ||
+        /^[a-z]{2,3}(?:-[a-z0-9]+)?:/.test(title)) continue;
+    if (/^[a-z]/.test(title)) title = title[0].toUpperCase() + title.slice(1);
+    if (title === self || seen.has(title)) continue;
+    seen.add(title);
+    out.push(title);
+  }
+  return out;
+}
+
+// ---------- 取得系（すべてキャッシュ付き） ----------
+async function fetchClean(titles, signal) {
+  const need = [...new Set(titles.map(norm))].filter((t) => t && !E.clean.has(canonOf(t)));
+  const chunk = 10;
+  const run = async (list) => {
+    const d = await api({ action: 'query', titles: list.join('|'), prop: 'revisions', rvprop: 'content', rvslots: 'main', redirects: '1' }, signal);
+    const nmap = new Map(), rmap = new Map();
+    for (const x of d?.query?.normalized || []) nmap.set(norm(x.from), norm(x.to));
+    for (const x of d?.query?.redirects || []) rmap.set(norm(x.from), norm(x.to));
+    for (const p of d?.query?.pages || []) {
+      const title = norm(p.title);
+      if (p.missing || p.invalid) { E.clean.set(title, []); continue; }
+      const rev = p.revisions?.[0];
+      const content = rev?.slots?.main?.content ?? rev?.content;
+      if (content === undefined) continue; // 応答サイズ上限で落ちた分は個別に取り直す
+      E.clean.set(title, extractBodyLinks(content, title));
+    }
+    for (const raw of list) {
+      let t = nmap.get(raw) || raw;
+      t = rmap.get(t) || t;
+      E.canon.set(raw, t);
+    }
+  };
+  for (let i = 0; i < need.length; i += chunk) {
+    const list = need.slice(i, i + chunk);
+    await run(list);
+    for (const raw of list) {
+      if (!E.clean.has(canonOf(raw))) {
+        await run([raw]);
+        if (!E.clean.has(canonOf(raw))) E.clean.set(canonOf(raw), []);
+      }
+    }
+  }
+}
+
+async function fetchAliases(titles, signal) {
+  const need = [...new Set(titles.map(canonOf))].filter((t) => t && !E.aliases.has(t));
+  for (let i = 0; i < need.length; i += 50) {
+    const list = need.slice(i, i + 50);
+    const acc = new Map(list.map((t) => [t, new Set([t])]));
+    let cont = null, rounds = 0;
+    do {
+      const p = { action: 'query', titles: list.join('|'), prop: 'redirects', rdnamespace: '0', rdlimit: 'max' };
+      if (cont) p.rdcontinue = cont;
+      const d = await api(p, signal);
+      for (const pg of d?.query?.pages || []) {
+        const t = norm(pg.title);
+        if (!acc.has(t)) acc.set(t, new Set([t]));
+        for (const r of pg.redirects || []) acc.get(t).add(norm(r.title));
+      }
+      cont = d?.continue?.rdcontinue || null;
+      rounds++;
+    } while (cont && rounds < 4);
+    for (const [k, v] of acc) E.aliases.set(k, v);
+  }
+}
+
+const aliasesOf = (t) => E.aliases.get(canonOf(t)) || new Set([canonOf(t)]);
+function hasLink(x, y) {
+  const links = linksOf(x);
+  const al = aliasesOf(y);
+  return links.some((l) => al.has(l) || canonOf(l) === canonOf(y));
+}
+
+// ゴールの被リンク（リダイレクト経由も含む）
+async function goalBacklinks(goal, signal) {
+  const key = '@goal:' + goal;
+  if (E.lh.has(key)) return E.lh.get(key);
+  const out = new Set();
+  let cont = null, rounds = 0;
+  do {
+    const p = { action: 'query', list: 'backlinks', bltitle: goal, blnamespace: '0', bllimit: '500', blredirect: '1' };
+    if (cont) p.blcontinue = cont;
+    const d = await api(p, signal);
+    for (const it of d?.query?.backlinks || []) {
+      if (it.redirect) { for (const r of it.redirlinks || []) out.add(norm(r.title)); }
+      else out.add(norm(it.title));
+    }
+    cont = d?.continue?.blcontinue || null;
+    rounds++;
+  } while (cont && rounds < 8);
+  const arr = [...out];
+  E.lh.set(key, arr);
+  return arr;
+}
+
+// 複数記事の被リンクをまとめて取得
+async function fetchLinksHere(titles, signal) {
+  const need = [...new Set(titles)].filter((t) => !E.lh.has(t));
+  for (let i = 0; i < need.length; i += 50) {
+    const list = need.slice(i, i + 50);
+    const acc = new Map(list.map((t) => [t, []]));
+    let cont = null, rounds = 0;
+    do {
+      const p = { action: 'query', titles: list.join('|'), prop: 'linkshere', lhnamespace: '0', lhshow: '!redirect', lhlimit: 'max', lhprop: 'title' };
+      if (cont) p.lhcontinue = cont;
+      const d = await api(p, signal);
+      for (const pg of d?.query?.pages || []) {
+        const t = norm(pg.title);
+        if (!acc.has(t)) acc.set(t, []);
+        for (const s of pg.linkshere || []) acc.get(t).push(norm(s.title));
+      }
+      cont = d?.continue?.lhcontinue || null;
+      rounds++;
+    } while (cont && rounds < 4);
+    for (const [k, v] of acc) E.lh.set(k, v);
+  }
+}
+
+async function resolveTitle(q, signal) {
+  const s = norm(q);
+  if (!s) return null;
+  const d = await api({ action: 'query', titles: s, redirects: '1' }, signal);
+  const p = (d?.query?.pages || [])[0];
+  if (p && !p.missing && !p.invalid) {
+    const r = (d?.query?.redirects || [])[0];
+    return { title: norm(p.title), note: r ? `「${r.from}」は「${p.title}」へのリダイレクトです。` : '' };
+  }
+  const sd = await api({ action: 'query', list: 'search', srsearch: s, srnamespace: '0', srlimit: '1' }, signal);
+  const hit = (sd?.query?.search || [])[0];
+  if (hit) return { title: norm(hit.title), note: `「${s}」の記事が無いため、近い記事「${hit.title}」を使いました。` };
+  return null;
+}
+
+async function randomTitle(signal) {
+  for (let i = 0; i < 5; i++) {
+    const d = await api({ action: 'query', list: 'random', rnnamespace: '0', rnlimit: '5' }, signal, false);
+    const c = (d?.query?.random || []).map((r) => norm(r.title)).filter((t) => !isDateOrList(t));
+    if (c.length) return c[0];
+  }
+  return null;
+}
+
+// ---------- 最短ルート探索（双方向） ----------
+// 戻り値: { routes: string[][], hops } または null
+async function shortestRoutes(start, goal, opt, signal) {
+  const t0 = Date.now();
+  const blockedSet = opt.blocked || new Set();
+  const forbidden = opt.forbidden || new Set();
+  const goalAl = aliasesOf(goal);
+  const isBlocked = (t) => {
+    const c = canonOf(t);
+    if (goalAl.has(t) || goalAl.has(c)) return false;
+    return forbidden.has(c) || forbidden.has(t) || blockedSet.has(c) || blockedSet.has(t) || (opt.avoidDates && (isDateOrList(t) || isDateOrList(c)));
+  };
+
+  const fwd = new Map([[start, { d: 0, prev: null }]]);
+  const fLv = [[start]];
+  const bwd = new Map();
+  for (const a of goalAl) bwd.set(a, { d: 0, next: [] });
+  bwd.set(goal, { d: 0, next: [] });
+  const bLv = [[goal]];
+  const failed = new Set();
+
+  const addForward = (level) => {
+    const next = [];
+    for (const x of level) {
+      const base = fwd.get(x);
+      for (const l of linksOf(x)) {
+        if (fwd.has(l) || isBlocked(l)) continue;
+        fwd.set(l, { d: base.d + 1, prev: x });
+        next.push(l);
+      }
+    }
+    return next;
+  };
+
+  const pickF = (list, cap) => {
+    const cand = list.filter((t) => !goalAl.has(t));
+    if (cand.length <= cap) return cand;
+    const head = cand.slice(0, Math.ceil(cap / 2));
+    const rest = shuffle(cand.slice(Math.ceil(cap / 2))).slice(0, cap - head.length);
+    return head.concat(rest);
+  };
+
+  const fwdPath = (t) => {
+    const p = [];
+    let cur = t;
+    while (cur !== null && cur !== undefined) { p.unshift(cur); cur = fwd.get(cur).prev; }
+    return p;
+  };
+
+  // 被リンク側の経路（x からゴールまで）を本文リンクで検証しながら組み立てる
+  const verifySuffix = async (x, seen) => {
+    const cx = canonOf(x);
+    if (goalAl.has(x) || goalAl.has(cx)) return [goal];
+    if (failed.has(cx)) return null;
+    const e = bwd.get(cx) || bwd.get(x);
+    if (!e || !e.next.length) { failed.add(cx); return null; }
+    await fetchClean([cx], signal);
+    const nexts = e.next.filter((y) => !seen.has(y)).slice(0, 4);
+    await fetchAliases(nexts, signal);
+    for (const y of nexts) {
+      if (!hasLink(cx, y)) continue;
+      const rest = await verifySuffix(y, new Set([...seen, cx]));
+      if (rest) return [cx, ...rest];
+    }
+    failed.add(cx);
+    return null;
+  };
+
+  const tryMeet = async () => {
+    const cands = [];
+    for (const [t, f] of fwd) {
+      const c = canonOf(t);
+      const b = bwd.get(c) || bwd.get(t);
+      if (!b) continue;
+      if (failed.has(c)) continue;
+      cands.push({ t, total: f.d + b.d, score: (isDateOrList(c) ? 1 : 0) + (GENERIC.has(c) ? 0.5 : 0) + Math.random() * 0.4 });
+    }
+    if (!cands.length) return null;
+    cands.sort((a, b) => a.total - b.total || a.score - b.score);
+    const routes = [];
+    let bestTotal = null, tries = 0;
+    for (const c of cands) {
+      if (bestTotal !== null && c.total > bestTotal) break;
+      if (tries >= 18 || routes.length >= 3) break;
+      if (Date.now() - t0 > TIME_BUDGET_MS) break;
+      tries++;
+      E.hooks.progress(`見つかった候補（${c.total}クリック）を本文リンクで確認中…`);
+      const head = fwdPath(c.t).map(canonOf);
+      head.pop();
+      const tail = await verifySuffix(c.t, new Set(head));
+      if (!tail) continue;
+      const route = [...head, ...tail];
+      if (new Set(route).size !== route.length) continue;
+      const key = route.join('>');
+      if (routes.some((r) => r.join('>') === key)) continue;
+      routes.push(route);
+      bestTotal = route.length - 1;
+    }
+    return routes.length ? { routes, hops: routes[0].length - 1 } : null;
+  };
+
+  // 1クリック目
+  E.hooks.progress(`「${start}」の本文リンクを読んでいます…`, '1クリック');
+  await fetchClean([start], signal);
+  if (linksOf(start).some((l) => goalAl.has(l) || goalAl.has(canonOf(l)))) return { routes: [[start, goal]], hops: 1 };
+  fLv.push(addForward(fLv[0]));
+
+  let fDepth = 1, bDepth = 0;
+  while (fDepth + bDepth < MAX_HOPS) {
+    if (signal?.aborted) throw abortErr();
+    if (Date.now() - t0 > TIME_BUDGET_MS) break;
+
+    const fSize = fLv[fDepth].length;
+    const bSize = bLv[bDepth].length;
+    const canF = fSize > 0 && fDepth < F_CAP.length;
+    const canB = bSize > 0 && bDepth < B_CAP.length;
+    if (!canF && !canB) break;
+    // ゴール側の1段目は常に先に取る。以降は件数の少ない側を広げる
+    const expandB = canB && (bDepth === 0 || !canF || bDepth < fDepth);
+
+    if (expandB) {
+      const phase = `${fDepth + bDepth + 1}クリック`;
+      if (bDepth === 0) {
+        E.hooks.progress(`「${goal}」にリンクしている記事を集めています…`, phase);
+        const srcs = await goalBacklinks(goal, signal);
+        const lv = [];
+        for (const s of srcs) {
+          if (bwd.has(s) || isBlocked(s)) continue;
+          bwd.set(s, { d: 1, next: [goal] });
+          lv.push(s);
+        }
+        bLv.push(lv);
+      } else {
+        const pick = shuffle([...bLv[bDepth]]).slice(0, B_CAP[bDepth]);
+        E.hooks.progress(`ゴール側から${bDepth + 1}段目を広げています（${pick.length}記事）…`, phase);
+        await fetchLinksHere(pick, signal);
+        const lv = [];
+        for (const y of pick) {
+          for (const s of E.lh.get(y) || []) {
+            if (isBlocked(s)) continue;
+            const e = bwd.get(s);
+            if (!e) { bwd.set(s, { d: bDepth + 1, next: [y] }); lv.push(s); }
+            else if (e.d === bDepth + 1 && e.next.length < 4) e.next.push(y);
+          }
+        }
+        bLv.push(lv);
+      }
+      bDepth++;
+    } else {
+      const pick = pickF(fLv[fDepth], F_CAP[fDepth]);
+      E.hooks.progress(`スタート側から${fDepth + 1}段目を広げています（${pick.length}記事）…`, `${fDepth + bDepth + 1}クリック`);
+      await fetchClean(pick, signal);
+      for (const x of pick) {
+        const c = canonOf(x);
+        if (c !== x && !fwd.has(c)) fwd.set(c, { d: fwd.get(x).d, prev: fwd.get(x).prev });
+      }
+      fLv.push(addForward(pick));
+      fDepth++;
+    }
+    E.hooks.metrics({ fwd: fwd.size, bwd: bwd.size });
+    const found = await tryMeet();
+    if (found) return found;
+  }
+  return null;
+}
+
+// ---------- 寄り道ルート ----------
+async function detourRoute(start, goal, opt, signal) {
+  const goalAl = aliasesOf(goal);
+  const chain = [start];
+  const dead = new Set();
+  const steps = opt.detourSteps || 3;
+  let guard = 0;
+  while (chain.length - 1 < steps && guard++ < steps * 4) {
+    if (signal?.aborted) throw abortErr();
+    const cur = chain[chain.length - 1];
+    E.hooks.progress(`「${cur}」から寄り道先を連想しています…`, `寄り道 ${chain.length}手目`);
+    E.hooks.chain?.(chain);
+    await fetchClean([cur], signal);
+    const used = new Set(chain.map(canonOf));
+    const pool = linksOf(cur).filter((l) => !used.has(l) && !dead.has(l) && !goalAl.has(l) && !GENERIC.has(l) && !isDateOrList(l) && !(opt.blocked || new Set()).has(l)).slice(0, 30);
+    if (!pool.length) {
+      if (chain.length > 1) { dead.add(chain.pop()); continue; }
+      break;
+    }
+    const w = pool.map((_, i) => Math.max(1, pool.length - i));
+    let r = Math.random() * w.reduce((a, b) => a + b, 0), pick = pool[0];
+    for (let i = 0; i < pool.length; i++) { r -= w[i]; if (r <= 0) { pick = pool[i]; break; } }
+    await fetchClean([pick], signal);
+    const c = canonOf(pick);
+    if (linksOf(c).length < 3 || used.has(c) || goalAl.has(c)) { dead.add(pick); continue; }
+    chain.push(c);
+  }
+  // 寄り道の最後からゴールへ最短で着地（行けなければ1つ戻ってやり直す）
+  for (let back = 0; back < 3 && chain.length >= 1; back++) {
+    const from = chain[chain.length - 1];
+    E.hooks.chain?.(chain);
+    const forbidden = new Set(chain.slice(0, -1));
+    const res = await shortestRoutes(from, goal, { ...opt, forbidden }, signal);
+    if (res) {
+      const tail = res.routes[0];
+      return { route: [...chain, ...tail.slice(1)], detourEnd: chain.length - 1 };
+    }
+    if (chain.length > 1) dead.add(chain.pop()); else break;
+  }
+  return null;
+}
+
+if (typeof module !== 'undefined') module.exports = { E, api, extractBodyLinks, shortestRoutes, detourRoute, resolveTitle, fetchAliases, fetchClean, canonOf, randomTitle, isDateOrList };
+
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const wikiUrl = (t) => 'https://ja.wikipedia.org/wiki/' + encodeURIComponent(String(t).replace(/ /g, '_'));
+const HKEY = 'wiki_norikae_history_v1';
+
+const st = { mode: 'shortest', steps: 3, avoidDates: true, busy: false, ctrl: null, t0: 0, timer: null, result: null, sel: 0, hist: [], info: new Map(), lastQuery: null };
+
+E.hooks.progress = (text, phase) => { if (text) { $('progText').textContent = text; const v = document.getElementById('vs1'); if (v) v.textContent = text; } if (phase) $('phase').textContent = phase; };
+E.hooks.metrics = (m) => { $('mCalls').textContent = E.calls; if (m) { $('mF').textContent = m.fwd.toLocaleString(); $('mB').textContent = m.bwd.toLocaleString(); } const v = document.getElementById('vs2'); if (v) v.textContent = `通信 ${E.calls}回 ・ 出発側 ${$('mF').textContent}記事 ・ 到着側 ${$('mB').textContent}記事`; };
+E.hooks.chain = (chain) => { const l = $('live'); l.hidden = false; l.innerHTML = chain.map((t) => `<span>${esc(t)}</span>`).join('→'); };
+
+let toastT = null;
+function toast(t) { const x = $('toast'); x.textContent = t; x.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (x.hidden = true), 2200); }
+function msg(type, title, body) { const m = $('msg'); m.className = 'msg ' + type; $('msgT').textContent = title; $('msgB').textContent = body; m.hidden = false; }
+
+// ----- モード・設定UI -----
+function renderMode() {
+  const d = st.mode === 'detour';
+  $('tabShort').setAttribute('aria-selected', String(!d));
+  $('tabDetour').setAttribute('aria-selected', String(d));
+  $('detourRow').hidden = !d;
+  $('goBtn').textContent = d ? '寄り道ルートを探す' : '最短ルートを探す';
+  $('goBtn').classList.toggle('det', d);
+  $('detourSeg').innerHTML = [1, 2, 3, 4, 5].map((n) => `<button type="button" data-n="${n}" class="${n === st.steps ? 'on' : ''}" aria-pressed="${n === st.steps}">${n}</button>`).join('');
+}
+$('tabShort').onclick = () => { st.mode = 'shortest'; renderMode(); };
+$('tabDetour').onclick = () => { st.mode = 'detour'; renderMode(); };
+$('detourSeg').onclick = (e) => { const b = e.target.closest('button[data-n]'); if (b) { st.steps = +b.dataset.n; renderMode(); } };
+$('dateSw').onclick = () => { st.avoidDates = !st.avoidDates; $('dateSw').setAttribute('aria-checked', String(st.avoidDates)); };
+$('swapBtn').onclick = () => { const a = $('startIn').value; $('startIn').value = $('goalIn').value; $('goalIn').value = a; };
+$('startRnd').onclick = async () => {
+  try { $('startRnd').disabled = true; const t = await randomTitle(); if (t) $('startIn').value = t; }
+  catch { toast('ランダムな言葉を取得できませんでした'); }
+  finally { $('startRnd').disabled = false; }
+};
+
+// ----- 入力候補 -----
+function attachSuggest(input, list) {
+  let timer = null, items = [], idx = -1;
+  const close = () => { list.hidden = true; list.innerHTML = ''; items = []; idx = -1; };
+  const choose = (t) => { input.value = t; close(); };
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    const q = input.value.trim();
+    if (!q) return close();
+    timer = setTimeout(async () => {
+      try {
+        const d = await api({ action: 'opensearch', search: q, namespace: '0', limit: '7' }, null, false);
+        if (input.value.trim() !== q) return;
+        items = Array.isArray(d?.[1]) ? d[1] : [];
+        idx = -1;
+        if (!items.length) return close();
+        list.innerHTML = items.map((t, i) => `<li role="option" data-i="${i}">${esc(t)}</li>`).join('');
+        list.hidden = false;
+      } catch { close(); }
+    }, 220);
+  });
+  input.addEventListener('keydown', (e) => {
+    if (list.hidden || !items.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      idx = (idx + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+      [...list.children].forEach((li, i) => li.classList.toggle('on', i === idx));
+    } else if (e.key === 'Enter' && idx >= 0) { e.preventDefault(); choose(items[idx]); }
+    else if (e.key === 'Escape') close();
+  });
+  list.addEventListener('mousedown', (e) => { const li = e.target.closest('li[data-i]'); if (li) { e.preventDefault(); choose(items[+li.dataset.i]); } });
+  input.addEventListener('blur', () => setTimeout(close, 150));
+}
+attachSuggest($('startIn'), $('startSug'));
+attachSuggest($('goalIn'), $('goalSug'));
+
+// ----- 進捗 -----
+function startProg() {
+  window.scrollTo({ top: 0 });
+  st.busy = true; E.calls = 0;
+  $('goBtn').disabled = true; $('prog').hidden = false; $('msg').hidden = true; $('res').hidden = true; $('live').hidden = true;
+  $('mCalls').textContent = '0'; $('mF').textContent = '0'; $('mB').textContent = '0';
+  st.t0 = performance.now();
+  clearInterval(st.timer);
+  st.timer = setInterval(() => { $('elapsed').textContent = ((performance.now() - st.t0) / 1000).toFixed(1) + '秒'; }, 100);
+}
+function stopProg() { st.busy = false; clearInterval(st.timer); $('goBtn').disabled = false; $('prog').hidden = true; }
+$('cancelBtn').onclick = () => st.ctrl?.abort();
+
+function parseExcl() {
+  return new Set($('exclIn').value.split(/[、,，\n]/).map((s) => norm(s)).filter(Boolean));
+}
+
+// ----- 検索本体 -----
+async function search() {
+  if (st.busy) return;
+  const goalQ = $('goalIn').value.trim();
+  if (!goalQ) { msg('warn', '到着の言葉を入れてください', '「到着」の欄に、たどり着きたい言葉を入れてから探してください。'); $('goalIn').focus(); return; }
+  st.ctrl = new AbortController();
+  const signal = st.ctrl.signal;
+  const mode = st.mode, steps = st.steps;
+  const blocked = parseExcl();
+  const notes = [];
+  startProg();
+  openViewerLoading();
+  try {
+    let startQ = $('startIn').value.trim();
+    let isRandom = !startQ;
+    let start;
+    if (isRandom) {
+      E.hooks.progress('ランダムな出発の言葉を選んでいます…', '準備');
+      start = await randomTitle(signal);
+    } else {
+      E.hooks.progress('出発の記事を確認しています…', '準備');
+      const s = await resolveTitle(startQ, signal);
+      if (!s) { msg('warn', '出発の記事が見つかりません', `「${startQ}」に当たる記事が見つかりませんでした。空欄にするとランダムな言葉から出発します。`); return; }
+      start = s.title;
+      if (s.note) notes.push(s.note);
+    }
+    $('startIn').value = start;
+    previewStart(start);
+    E.hooks.progress('到着の記事を確認しています…', '準備');
+    const g = await resolveTitle(goalQ, signal);
+    if (!g) { msg('warn', '到着の記事が見つかりません', `「${goalQ}」に当たる日本語版Wikipediaの記事が見つかりませんでした。別の言い方で試してください。`); return; }
+    const goal = g.title;
+    $('goalIn').value = goal;
+    if (g.note) notes.push(g.note);
+    await fetchAliases([goal], signal);
+
+
+    if (aliasesOf(goal).has(start) || start === goal) {
+      return await show({ mode, start, goal, routes: [[goal]], detourEnd: -1, notes });
+    }
+
+    let avoidDates = st.avoidDates;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const opt = { avoidDates, blocked, detourSteps: steps };
+      if (mode === 'shortest') {
+        const r = await shortestRoutes(start, goal, opt, signal);
+        if (r) return await show({ mode, start, goal, routes: r.routes, detourEnd: -1, notes });
+      } else {
+        const d = await detourRoute(start, goal, opt, signal);
+        if (d) return await show({ mode, start, goal, routes: [d.route], detourEnd: d.detourEnd, notes });
+      }
+      // 見つからなかったときの立て直し
+      if (avoidDates) { avoidDates = false; notes.push('年・日付・一覧の記事を外すと見つからなかったため、それらも使って探しました。'); continue; }
+      if (isRandom) {
+        const old = start;
+        start = await randomTitle(signal);
+        $('startIn').value = start;
+        notes.push(`「${old}」からは道が見つからなかったため、出発を「${start}」に変えました。`);
+        avoidDates = st.avoidDates;
+        continue;
+      }
+      break;
+    }
+    msg('warn', 'ルートが見つかりませんでした',
+      `「${start}」から「${goal}」へ、本文リンクだけで${MAX_HOPS}クリック以内の道を見つけられませんでした。到着の記事が他の記事からほとんどリンクされていない可能性があります。出発を変えるか、「中継に使わない記事」を減らしてください。`);
+  } catch (err) {
+    if (err.name === 'AbortError') msg('info', '検索をやめました', '言葉を変えて、もう一度探せます。');
+    else if (err.rate) msg('warn', 'Wikipediaが混み合っています', '短い時間に問い合わせが多すぎたため、一時的に制限されました。20秒ほど待ってからもう一度お試しください。');
+    else { console.error(err); msg('err', 'エラーが起きました', `Wikipediaとの通信で問題が起きました（${err.message}）。少し待ってから試してください。`); }
+  } finally {
+    stopProg();
+    if (V.loading) closeViewer();
+  }
+}
+$('form').addEventListener('submit', (e) => { e.preventDefault(); for (const id of ['startSug', 'goalSug']) { $(id).hidden = true; } document.activeElement?.blur?.(); search(); });
+$('againBtn').onclick = () => {
+  if (!st.result || st.busy) return;
+  // 到着はそのまま、出発をランダムな別の言葉にして探し直す
+  $('startIn').value = '';
+  $('goalIn').value = st.result.goal;
+  st.mode = st.result.mode; renderMode();
+  search();
+};
+
+// ----- 結果表示 -----
+async function fetchInfo(titles) {
+  const need = [...new Set(titles)].filter((t) => !st.info.has(t));
+  for (let i = 0; i < need.length; i += 20) {
+    const list = need.slice(i, i + 20);
+    try {
+      const d = await api({ action: 'query', titles: list.join('|'), prop: 'pageimages|extracts', pithumbsize: '160', exintro: '1', explaintext: '1', exsentences: '2', exlimit: 'max', redirects: '1' }, null, false);
+      for (const p of d?.query?.pages || []) st.info.set(norm(p.title), { extract: (p.extract || '').trim(), thumb: p.thumbnail?.source || '' });
+    } catch { /* 概要が取れなくても表示は続ける */ }
+  }
+}
+
+async function show(r) {
+  E.hooks.progress('見つかったルートの記事の説明を読み込み中…', '表示準備');
+  await fetchInfo(r.routes.flat());
+  st.result = r; st.sel = 0;
+  render();
+  saveHist(r);
+  if ((r.routes[0] || []).length > 1) openViewer(); else closeViewer();
+}
+
+function render() {
+  const r = st.result;
+  const route = r.routes[st.sel] || r.routes[0];
+  const hops = route.length - 1;
+  const det = r.mode === 'detour';
+  $('rBig').innerHTML = `${hops}<small>クリック</small>`;
+  $('rTitle').textContent = hops === 0 ? `「${r.start}」は到着の記事そのものです` : `「${r.start}」→「${r.goal}」`;
+  const tags = [det ? `寄り道ルート（寄り道${r.detourEnd}回）` : '最短ルート', '本文リンクのみ'];
+  $('rTags').innerHTML = tags.map((t) => `<span>${esc(t)}</span>`).join('');
+  $('rPath').textContent = route.join(' → ');
+  $('res').classList.toggle('det', det);
+  $('rNote').hidden = !r.notes.length;
+  $('rNote').textContent = r.notes.join(' ');
+  $('againBtn').textContent = '別の言葉を探す';
+  $('legend').hidden = !det;
+  const alts = $('alts');
+  alts.hidden = r.routes.length < 2;
+  alts.innerHTML = r.routes.map((_, i) => `<button type="button" data-i="${i}" class="${i === st.sel ? 'on' : ''}">ルート${i + 1}</button>`).join('');
+  $('line').innerHTML = route.map((t, i) => {
+    const inf = st.info.get(t) || {};
+    const segDetour = det && i <= r.detourEnd;
+    const color = segDetour ? 'var(--teal)' : 'var(--red)';
+    let lab = i === 0 ? '出発' : i === route.length - 1 ? '到着' : `${i}クリック目`;
+    if (det && i > 0 && i <= r.detourEnd) lab += '・寄り道';
+    const cls = i === 0 ? 'beg' : i === route.length - 1 ? 'end' : '';
+    const img = inf.thumb ? `<img src="${esc(inf.thumb)}" alt="" loading="lazy" onerror="this.remove()">` : '';
+    return `<li class="st ${cls}" style="--seg:${color}"><span class="pin"></span><a class="box" href="${esc(wikiUrl(t))}" target="_blank" rel="noopener noreferrer">${img}<div><span class="lab">${esc(lab)}</span><h3>${esc(t)}</h3>${inf.extract ? `<p>${esc(inf.extract)}</p>` : ''}</div></a></li>`;
+  }).join('');
+  $('xBtn').href = 'https://x.com/intent/tweet?' + new URLSearchParams({ text: shareText(false), url: pageUrl() }).toString();
+  $('res').hidden = false;
+  window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
+$('alts').onclick = (e) => { const b = e.target.closest('button[data-i]'); if (b) { st.sel = +b.dataset.i; render(); } };
+
+function pageUrl() {
+  const m = document.querySelector('meta[property="og:url"]')?.content || '';
+  if (location.protocol.startsWith('http') && !/localhost|127\.0\.0\.1/.test(location.hostname)) return location.origin + location.pathname;
+  return m;
+}
+function shareText(withUrl) {
+  const r = st.result; if (!r) return '';
+  const route = r.routes[st.sel] || r.routes[0];
+  const det = r.mode === 'detour';
+  const lines = [`「${r.start}」から「${r.goal}」まで${route.length - 1}クリック！${det ? '（寄り道ルート）' : '（最短ルート）'}`, route.join(' → '), '', '#ウィキ乗り換え案内'];
+  if (withUrl) lines.push(pageUrl());
+  return lines.join('\n');
+}
+$('copyBtn').onclick = async () => {
+  const text = shareText(true);
+  try { await navigator.clipboard.writeText(text); toast('結果をコピーしました'); }
+  catch {
+    const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.top = '-999px';
+    document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch { /* 失敗 */ }
+    ta.remove(); toast(ok ? '結果をコピーしました' : 'コピーできませんでした');
+  }
+};
+
+// ----- 履歴 -----
+function loadHist() { try { const v = JSON.parse(localStorage.getItem(HKEY) || '[]'); st.hist = Array.isArray(v) ? v.slice(0, 12) : []; } catch { st.hist = []; } renderHist(); }
+function saveHist(r) {
+  const route = r.routes[0];
+  st.hist = [{ mode: r.mode, start: r.start, goal: r.goal, route, at: Date.now() }, ...st.hist.filter((h) => !(h.start === r.start && h.goal === r.goal && h.mode === r.mode))].slice(0, 12);
+  try { localStorage.setItem(HKEY, JSON.stringify(st.hist)); } catch { /* 保存できない環境 */ }
+  renderHist();
+}
+function renderHist() {
+  $('hist').hidden = !st.hist.length;
+  $('histList').innerHTML = st.hist.map((h, i) => `<button type="button" class="it" data-i="${i}"><b>${esc(h.start)} → ${esc(h.goal)}</b><span class="pill ${h.mode === 'detour' ? 'd' : ''}">${h.mode === 'detour' ? '寄り道' : '最短'} ${h.route.length - 1}</span><small>${esc(h.route.join(' → '))}</small></button>`).join('');
+}
+$('histList').onclick = (e) => {
+  const b = e.target.closest('button[data-i]'); if (!b) return;
+  const h = st.hist[+b.dataset.i];
+  $('startIn').value = h.start; $('goalIn').value = h.goal; st.mode = h.mode; renderMode();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+$('clrHist').onclick = () => { st.hist = []; try { localStorage.removeItem(HKEY); } catch { /* 無視 */ } renderHist(); toast('履歴を消しました'); };
+
+// ----- ルート再生（記事を開いてリンクまでスクロールし、押して次へ） -----
+const V = { route: [], i: 0, playing: false, loading: false, speed: 1, html: new Map(), token: 0, shown: null };
+const SPEEDS = [1, 2, 0.5];
+const vwait = (ms) => new Promise((r) => setTimeout(r, ms / V.speed));
+
+async function getHtml(title) {
+  if (V.html.has(title)) return V.html.get(title);
+  const p = api({ action: 'parse', page: title, prop: 'text', redirects: '1', disableeditsection: '1', disabletoc: '1' }, null, false)
+    .then((d) => d?.parse?.text || '');
+  V.html.set(title, p);
+  p.catch(() => V.html.delete(title));
+  return p;
+}
+
+function cleanHtml(h) {
+  const doc = new DOMParser().parseFromString(h, 'text/html');
+  doc.querySelectorAll('script,style,link,meta,iframe,object,embed,form,.navbox,.navbox-styles,.vertical-navbox,.reflist,.references,.mw-references-wrap,.mw-editsection,.ambox,.metadata,.sistersitebox,.noprint,#toc,.toc,.mw-empty-elt,.catlinks,sup.reference').forEach((e) => e.remove());
+  // 脚注・出典・関連項目などの節を丸ごと外す
+  const heads = [...doc.querySelectorAll('h2')];
+  for (const h2 of heads) {
+    const name = h2.textContent.replace(/\[.*?\]/g, '').trim();
+    if (!EXCLUDED_SECTIONS.has(name)) continue;
+    const box = h2.closest('.mw-heading') || h2;
+    let n = box.nextElementSibling;
+    while (n && !(n.tagName === 'H2' || n.classList.contains('mw-heading2') || n.querySelector?.(':scope > h2'))) { const x = n.nextElementSibling; n.remove(); n = x; }
+    box.remove();
+  }
+  doc.querySelectorAll('*').forEach((el) => { for (const a of [...el.attributes]) if (/^on/i.test(a.name) || (a.name === 'href' && /^\s*javascript:/i.test(a.value))) el.removeAttribute(a.name); });
+  doc.querySelectorAll('img').forEach((img) => {
+    const s = img.getAttribute('src') || '';
+    if (s.startsWith('//')) img.setAttribute('src', 'https:' + s);
+    img.removeAttribute('srcset'); img.setAttribute('loading', 'lazy');
+  });
+  doc.querySelectorAll('a').forEach((a) => {
+    const href = a.getAttribute('href') || '';
+    const m = href.match(/^\/wiki\/([^?#]+)/);
+    if (m) { try { a.dataset.t = norm(decodeURIComponent(m[1])); } catch { a.dataset.t = norm(m[1]); } }
+    a.removeAttribute('href');
+  });
+  return doc.body.innerHTML;
+}
+
+function findLink(next) {
+  const al = aliasesOf(next);
+  const ok = (t) => al.has(t) || canonOf(t) === next || t === next;
+  for (const a of $('vBox').querySelectorAll('a[data-t]')) if (ok(a.dataset.t)) return a;
+  return null;
+}
+
+function renderVHead() {
+  const n = V.route.length - 1;
+  const t = V.route[V.i];
+  $('vStep').innerHTML = V.i === n ? `到着：${esc(t)}<small>${n}クリックでゴール</small>` : `${V.i === 0 ? '出発' : V.i + 'クリック目'}：${esc(t)}<small>ゴールまであと${n - V.i}クリック</small>`;
+  $('vChips').innerHTML = V.route.map((r, k) => `<button type="button" data-i="${k}" class="${k === V.i ? 'on' : k < V.i ? 'done' : ''}">${esc(r)}</button>`).join('');
+  $('vChips').querySelector('.on')?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  $('vUrl').textContent = 'ja.wikipedia.org/wiki/' + t;
+  $('vPlay').textContent = V.playing ? '一時停止' : (V.i === n ? 'もう一度' : '再生');
+  $('vPrev').disabled = V.i === 0;
+  $('vNext').disabled = V.i === n;
+}
+
+function smoothScroll(box, to, tk) {
+  const from = box.scrollTop;
+  const dist = to - from;
+  if (Math.abs(dist) < 4 || matchMedia('(prefers-reduced-motion: reduce)').matches) { box.scrollTop = to; return Promise.resolve(); }
+  const dur = Math.min(4500, Math.max(900, Math.abs(dist) * 0.9)) / V.speed;
+  return new Promise((res) => {
+    const t0 = performance.now();
+    const f = (now) => {
+      if (tk !== V.token) return res();
+      const p = Math.min(1, (now - t0) / dur);
+      const e = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
+      box.scrollTop = from + dist * e;
+      if (p < 1) requestAnimationFrame(f); else res();
+    };
+    requestAnimationFrame(f);
+  });
+}
+
+async function vGoto(i) {
+  const tk = ++V.token;
+  V.i = i;
+  renderVHead();
+  const box = $('vBox');
+  const title = V.route[i];
+  const last = V.route.length - 1;
+  if (V.shown !== title) {
+    box.classList.add('fade');
+    $('vCap').textContent = '';
+    let html;
+    try { html = cleanHtml(await getHtml(title)); } catch { html = '<p class="vload">記事を読み込めませんでした。</p>'; }
+    if (tk !== V.token) return;
+    box.innerHTML = `<h1 class="vt">${esc(title)}</h1>${html}`;
+    box.scrollTop = 0;
+    box.classList.remove('fade');
+    V.shown = title;
+  }
+  if (i < last) getHtml(V.route[i + 1]).catch(() => {});
+  if (i === last) {
+    box.insertAdjacentHTML('afterbegin', '<div class="arrive"><b>到着！</b></div>');
+    $('vCap').innerHTML = `<b>${esc(V.route[0])}</b> から <b>${last}クリック</b> で到着しました。`;
+    const wasPlaying = V.playing;
+    V.playing = false; renderVHead();
+    if (wasPlaying) {
+      await vwait(1800);
+      if (tk === V.token) { closeViewer(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    }
+    return;
+  }
+  const next = V.route[i + 1];
+  const link = findLink(next);
+  if (!link) {
+    $('vCap').innerHTML = `この記事の表示上で「${esc(next)}」へのリンク位置を特定できませんでした（記事内にはあります）。`;
+    if (!V.playing) return;
+    await vwait(1800);
+    if (tk === V.token) vGoto(i + 1);
+    return;
+  }
+  $('vCap').innerHTML = `「<b>${esc(next)}</b>」へのリンクを探しています…`;
+  if (!V.playing) {
+    link.classList.add('hit');
+    $('vCap').innerHTML = `次は「<b>${esc(link.textContent)}</b>」を押します。「再生」で続きを見られます。`;
+    return;
+  }
+  await vwait(700);
+  if (tk !== V.token) return;
+  const target = link.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop - box.clientHeight * 0.4;
+  await smoothScroll(box, Math.max(0, target), tk);
+  if (tk !== V.token) return;
+  link.classList.add('hit');
+  $('vCap').innerHTML = `「<b>${esc(link.textContent)}</b>」を押します`;
+  await vwait(800);
+  if (tk !== V.token) return;
+  const lr = link.getBoundingClientRect(), br = box.getBoundingClientRect();
+  const tap = document.createElement('span');
+  tap.className = 'tap';
+  tap.style.left = (lr.left - br.left + lr.width / 2) + 'px';
+  tap.style.top = (lr.top - br.top + box.scrollTop + lr.height / 2) + 'px';
+  box.appendChild(tap);
+  await vwait(900);
+  if (tk === V.token) vGoto(i + 1);
+}
+
+function setCtl(on) { for (const id of ['vPrev', 'vPlay', 'vNext', 'vSpeed']) $(id).disabled = !on; }
+function openViewerLoading() {
+  V.token++; V.loading = true; V.playing = false;
+  $('viewer').hidden = false;
+  document.body.style.overflow = 'hidden';
+  V.shown = null;
+  $('vStep').innerHTML = '';
+  $('vChips').innerHTML = '';
+  $('vUrl').textContent = 'ja.wikipedia.org';
+  $('vBox').innerHTML = '';
+  $('vCap').textContent = '';
+  document.querySelector('.vctl').hidden = true;
+}
+// 探している間は出発の記事を先に開いて、読んでいるようにゆっくりスクロールする
+async function previewStart(title) {
+  if (!V.loading) return;
+  $('vStep').innerHTML = `出発：${esc(title)}`;
+  $('vUrl').textContent = 'ja.wikipedia.org/wiki/' + title;
+  let html;
+  try { html = cleanHtml(await getHtml(title)); } catch { return; }
+  if (!V.loading) return;
+  const box = $('vBox');
+  box.innerHTML = `<h1 class="vt">${esc(title)}</h1>${html}`;
+  box.scrollTop = 0;
+  V.shown = title;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let last = performance.now();
+  const idle = (now) => {
+    if (!V.loading || V.shown !== title) return;
+    const max = (box.scrollHeight - box.clientHeight) * 0.6;
+    if (box.scrollTop < max) box.scrollTop += (now - last) * 0.025;
+    last = now;
+    requestAnimationFrame(idle);
+  };
+  setTimeout(() => requestAnimationFrame((n) => { last = n; idle(n); }), 1200);
+}
+async function openViewer() {
+  const r = st.result; if (!r) return;
+  V.loading = false;
+  document.querySelector('.vctl').hidden = false;
+  setCtl(true);
+  V.route = r.routes[st.sel] || r.routes[0];
+  V.playing = true;
+  $('viewer').hidden = false;
+  document.body.style.overflow = 'hidden';
+  try { await fetchAliases(V.route); } catch { /* 別名が取れなくても続ける */ }
+  vGoto(0);
+}
+function closeViewer() { V.token++; V.playing = false; V.loading = false; V.shown = null; $('viewer').hidden = true; document.body.style.overflow = ''; }
+$('playBtn').onclick = openViewer;
+$('vClose').onclick = () => { if (V.loading && st.busy) st.ctrl?.abort(); closeViewer(); };
+$('vPlay').onclick = () => {
+  if (V.playing) { V.playing = false; V.token++; renderVHead(); $('vCap').textContent = '一時停止中'; return; }
+  V.playing = true;
+  vGoto(V.i === V.route.length - 1 ? 0 : V.i);
+};
+$('vPrev').onclick = () => { V.playing = false; if (V.i > 0) vGoto(V.i - 1); };
+$('vNext').onclick = () => { V.playing = false; if (V.i < V.route.length - 1) vGoto(V.i + 1); };
+$('vSpeed').onclick = () => { V.speed = SPEEDS[(SPEEDS.indexOf(V.speed) + 1) % SPEEDS.length]; $('vSpeed').textContent = V.speed + '倍'; };
+$('vChips').onclick = (e) => { const b = e.target.closest('button[data-i]'); if (b) { V.playing = false; vGoto(+b.dataset.i); } };
+document.addEventListener('keydown', (e) => { if (!$('viewer').hidden && e.key === 'Escape') $('vClose').click(); });
+
+renderMode();
+loadHist();
+}
+</script>
+</body>
+</html>
